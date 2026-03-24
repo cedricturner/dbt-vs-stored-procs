@@ -3,29 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>dbt vs Stored Procedures — Interactive Walkthrough</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'DM Sans',sans-serif;background:#0e1117;color:#e6edf3;min-height:100vh;overflow-x:hidden}
-.app{max-width:1020px;margin:0 auto;padding:28px 20px 80px}
+.app{max-width:1020px;margin:0 auto;padding:40px 20px 80px}
 
-/* mode toggle */
-.mode-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;padding:10px 14px;background:#161b22;border:1px solid #2d333b;border-radius:10px}
-.mode-label{font-size:12px;color:#8b949e;font-family:'JetBrains Mono',monospace;letter-spacing:.5px}
-.mode-toggle{display:flex;background:#0e1117;border:1px solid #2d333b;border-radius:8px;padding:3px;gap:3px}
-.mode-btn{padding:7px 16px;border-radius:6px;border:none;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all .2s;color:#8b949e;background:transparent}
-.mode-btn.active{background:#ff6b35;color:#fff;box-shadow:0 1px 8px rgba(255,107,53,.3)}
-.mode-hint{font-size:11px;color:#8b949e}
-.mode-hint span{color:#ff6b35}
-
-/* header */
-.hdr{text-align:center;margin-bottom:36px}
+.hdr{text-align:center;margin-bottom:40px}
 .hdr-tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#ff6b35;background:rgba(255,107,53,.1);border:1px solid rgba(255,107,53,.25);padding:4px 13px;border-radius:99px;margin-bottom:14px}
-.hdr h1{font-size:clamp(20px,3.5vw,32px);font-weight:600;line-height:1.2;margin-bottom:8px;color:#fff}
-.hdr p{color:#8b949e;font-size:14px;max-width:500px;margin:0 auto;line-height:1.6}
-.hdr p.demo-only{display:none}
+.hdr h1{font-size:clamp(22px,4vw,36px);font-weight:600;line-height:1.2;margin-bottom:10px;color:#fff}
+.hdr p{color:#8b949e;font-size:14px;max-width:520px;margin:0 auto;line-height:1.6}
 
-/* step nav */
 .nav{display:flex;align-items:center;margin-bottom:32px;background:#161b22;border:1px solid #2d333b;border-radius:12px;padding:5px;gap:3px;flex-wrap:wrap}
 .nav-step{flex:1;min-width:80px;display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 6px;border-radius:8px;cursor:pointer;border:none;background:transparent;color:#8b949e;transition:all .2s;font-family:'DM Sans',sans-serif}
 .nav-step:hover{background:#1c2129;color:#e6edf3}
@@ -35,19 +24,14 @@ body{font-family:'DM Sans',sans-serif;background:#0e1117;color:#e6edf3;min-heigh
 .nav-step.active .step-num{background:rgba(255,255,255,.25)}
 .step-lbl{font-size:11px;font-weight:500;text-align:center;line-height:1.3}
 
-/* panels */
 .panel{display:none;animation:fi .3s ease}
 .panel.active{display:block}
 @keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
 
-/* self-serve hint box */
 .hint{display:flex;align-items:flex-start;gap:11px;background:#161b22;border:1px solid #2d333b;border-radius:9px;padding:14px 16px;margin-bottom:20px;font-size:13px;color:#8b949e;line-height:1.55}
 .hint-icon{font-size:16px;flex-shrink:0;margin-top:1px}
 .hint strong{color:#e6edf3}
-.self-only{display:none}
-.demo-only{display:none}
 
-/* code */
 .code-wrap{border-radius:9px;overflow:hidden;border:2px solid #2d333b;margin-bottom:12px;transition:border-color .2s}
 .code-head{display:flex;align-items:center;justify-content:space-between;padding:9px 15px;background:#161b22;border-bottom:1px solid #2d333b}
 .lbl{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.3px}
@@ -55,13 +39,11 @@ body{font-family:'DM Sans',sans-serif;background:#0e1117;color:#e6edf3;min-heigh
 .code-body{background:#0d1117;padding:15px 17px;overflow-x:auto}
 .code-body pre{font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:1.72;color:#e6edf3;white-space:pre}
 
-/* issue highlights */
 .il{display:block;margin:0 -17px;padding:0 17px;border-left:3px solid #f85149;background:rgba(248,81,73,.09)}
 .wl{display:block;margin:0 -17px;padding:0 17px;border-left:3px solid #d29922;background:rgba(210,153,34,.07)}
 .in{color:#f85149;font-size:10px;font-style:italic}
 .wn{color:#d29922;font-size:10px;font-style:italic}
 
-/* clickable tmp blocks */
 .tmp-block{cursor:pointer}
 .tmp-block .code-head::after{content:'click to see in dbt →';font-family:'DM Sans',sans-serif;font-size:10px;color:#58a6ff;opacity:.6;font-weight:500}
 .tmp-block:hover{border-color:#58a6ff}
@@ -78,12 +60,10 @@ body{font-family:'DM Sans',sans-serif;background:#0e1117;color:#e6edf3;min-heigh
 .what-changed{background:#0c1a0c;border:1px solid rgba(63,185,80,.18);border-radius:7px;padding:11px 13px;margin-top:9px;font-size:12px;line-height:1.6;color:#8b949e}
 .what-changed strong{color:#3fb950}
 
-/* layer colors */
 .stg{border-color:#58a6ff}.stg .code-head{background:rgba(88,166,255,.06)}.stg .lbl{color:#58a6ff}.stg .badge{background:rgba(88,166,255,.14);color:#58a6ff}
 .int{border-color:#d29922}.int .code-head{background:rgba(210,153,34,.06)}.int .lbl{color:#d29922}.int .badge{background:rgba(210,153,34,.14);color:#d29922}
 .mart{border-color:#3fb950}.mart .code-head{background:rgba(63,185,80,.06)}.mart .lbl{color:#3fb950}.mart .badge{background:rgba(63,185,80,.14);color:#3fb950}
 
-/* naming cards */
 .naming-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
 .naming-card{flex:1;min-width:180px;background:#161b22;border:1px solid #2d333b;border-radius:9px;padding:13px 15px}
 .naming-card .prefix{font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:600;margin-bottom:5px}
@@ -92,7 +72,6 @@ body{font-family:'DM Sans',sans-serif;background:#0e1117;color:#e6edf3;min-heigh
 .naming-card.int-c .prefix{color:#d29922}
 .naming-card.mart-c .prefix{color:#3fb950}
 
-/* source table */
 .src-box{background:#161b22;border:1px solid #2d333b;border-radius:9px;padding:14px 16px;margin-bottom:16px}
 .src-box h4{font-size:11px;font-weight:600;margin-bottom:10px;color:#8b949e;text-transform:uppercase;letter-spacing:1px;font-family:'JetBrains Mono',monospace}
 .src-row{display:flex;align-items:center;gap:8px;margin-bottom:7px;font-size:12px;flex-wrap:wrap}
@@ -101,7 +80,6 @@ body{font-family:'DM Sans',sans-serif;background:#0e1117;color:#e6edf3;min-heigh
 .fn-s{color:#d2a8ff;font-family:'JetBrains Mono',monospace}
 .ref-s{color:#58a6ff;font-family:'JetBrains Mono',monospace}
 
-/* parallel bars */
 .par-wrap{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
 .par-block{background:#161b22;border:1px solid #2d333b;border-radius:9px;padding:14px 16px}
 .par-block h4{font-size:11px;font-weight:600;margin-bottom:12px;color:#8b949e;text-transform:uppercase;letter-spacing:1px;font-family:'JetBrains Mono',monospace}
@@ -110,10 +88,8 @@ body{font-family:'DM Sans',sans-serif;background:#0e1117;color:#e6edf3;min-heigh
 .bar-track{flex:1;height:22px;background:rgba(255,255,255,.03);border-radius:4px;position:relative;overflow:hidden}
 .bar-fill{height:100%;border-radius:4px;display:flex;align-items:center;padding:0 7px;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;color:rgba(255,255,255,.9);position:absolute;top:0;white-space:nowrap}
 
-/* dag */
 .dag-wrap{overflow-x:auto;padding:10px 0;margin-bottom:16px}
 
-/* debug */
 .debug-scenario{margin-bottom:12px;border-radius:9px;overflow:hidden;border:1px solid #2d333b}
 .debug-trigger{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;cursor:pointer;background:#161b22;user-select:none}
 .debug-trigger:hover{background:#1c2129}
@@ -131,10 +107,9 @@ body{font-family:'DM Sans',sans-serif;background:#0e1117;color:#e6edf3;min-heigh
 .dc:last-child .ch{color:#3fb950}
 .dc p{font-size:12px;color:#8b949e;line-height:1.6}
 .dc code{font-family:'JetBrains Mono',monospace;font-size:10px;background:rgba(255,255,255,.07);padding:1px 4px;border-radius:3px;color:#e6edf3}
-.debug-self-note{font-size:12px;color:#8b949e;padding:10px 15px;background:#0e1117;border-top:1px solid #2d333b;line-height:1.55}
-.debug-self-note strong{color:#e6edf3}
+.debug-note{font-size:12px;color:#8b949e;padding:10px 15px;background:#0e1117;border-top:1px solid #2d333b;line-height:1.55}
+.debug-note strong{color:#e6edf3}
 
-/* ann */
 .ann{margin-top:16px;padding:13px 15px;background:rgba(255,107,53,.05);border:1px solid rgba(255,107,53,.18);border-radius:8px;font-size:12px;line-height:1.6;color:#8b949e}
 .ann strong{color:#ff6b35}
 .ann.ok{background:rgba(63,185,80,.04);border-color:rgba(63,185,80,.18)}
@@ -142,7 +117,6 @@ body{font-family:'DM Sans',sans-serif;background:#0e1117;color:#e6edf3;min-heigh
 .ann.danger{background:rgba(248,81,73,.04);border-color:rgba(248,81,73,.18)}
 .ann.danger strong{color:#f85149}
 
-/* bottom nav */
 .bottom-nav{display:flex;justify-content:space-between;align-items:center;margin-top:28px;padding-top:20px;border-top:1px solid #2d333b}
 .btn-nav{padding:9px 18px;border-radius:7px;border:1px solid #2d333b;background:transparent;color:#8b949e;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all .2s}
 .btn-nav:hover:not(:disabled){background:#161b22;color:#e6edf3}
@@ -150,15 +124,6 @@ body{font-family:'DM Sans',sans-serif;background:#0e1117;color:#e6edf3;min-heigh
 .btn-nav.primary:hover{opacity:.9}
 .btn-nav:disabled{opacity:.25;cursor:default}
 .step-ind{font-size:11px;color:#8b949e;font-family:'JetBrains Mono',monospace}
-
-/* mode-driven visibility */
-body.demo .self-only{display:none}
-body.demo .hint{display:none}
-body.demo .hdr p.self-desc{display:none}
-body.demo .hdr p.demo-only{display:block}
-body.demo .debug-self-note{display:none}
-body.self .demo-only{display:none}
-body.self .self-only{display:block}
 
 @media(max-width:580px){
   .par-wrap{grid-template-columns:1fr}
@@ -168,32 +133,16 @@ body.self .self-only{display:block}
 }
 </style>
 </head>
-<body class="self">
+<body>
 <div class="app">
 
-<!-- mode bar -->
-<div class="mode-bar">
-  <div>
-    <div class="mode-label">VIEW MODE</div>
-    <div class="mode-hint self-only">Reading on your own — explanations included</div>
-    <div class="mode-hint demo-only">Demo mode — <span>minimal text, you narrate</span></div>
-  </div>
-  <div class="mode-toggle">
-    <button class="mode-btn" id="btn-demo" onclick="setMode('demo')">Demo</button>
-    <button class="mode-btn active" id="btn-self" onclick="setMode('self')">Self-serve</button>
-  </div>
-</div>
-
-<!-- header -->
 <div class="hdr">
   <div class="hdr-tag">dbt 101</div>
   <h1>From stored procedures to dbt</h1>
-  <p class="self-desc">An interactive walkthrough. Follow the steps — each one builds on the last so you can see exactly what changes and why.</p>
-  <p class="demo-only">Walk through each tab. Click the highlighted blocks to reveal dbt equivalents inline.</p>
+  <p>An interactive walkthrough. Follow the steps — each one builds on the last so you can see exactly what changes and why.</p>
 </div>
 
-<!-- nav -->
-<div class="nav" id="nav">
+<div class="nav">
   <button class="nav-step active" onclick="go(0)"><span class="step-num">1</span><span class="step-lbl">The full proc</span></button>
   <button class="nav-step" onclick="go(1)"><span class="step-num">2</span><span class="step-lbl">Breaking it apart</span></button>
   <button class="nav-step" onclick="go(2)"><span class="step-num">3</span><span class="step-lbl">Where data comes from</span></button>
@@ -201,12 +150,9 @@ body.self .self-only{display:block}
   <button class="nav-step" onclick="go(4)"><span class="step-num">5</span><span class="step-lbl">When things break</span></button>
 </div>
 
-<!-- ====================================================== -->
-<!-- TAB 1: FULL STORED PROCEDURE                          -->
-<!-- ====================================================== -->
+<!-- TAB 1: FULL STORED PROCEDURE -->
 <div class="panel active" id="p0">
-
-  <div class="hint self-only">
+  <div class="hint">
     <span class="hint-icon">💡</span>
     <div>This is a complete stored procedure — the kind you'd find in production today. It builds a customer order summary. <strong>Highlighted lines</strong> are the things that create problems at scale. Read the inline labels, then move to the next tab to see how dbt solves each one.</div>
   </div>
@@ -234,7 +180,7 @@ body.self .self-only{display:block}
       <span style="color:#79c0ff">COALESCE</span>(last_name,  <span style="color:#a5d6ff">'Unknown'</span>)  <span style="color:#ff7b72">AS</span> last_name,
       <span style="color:#ff7b72">CASE WHEN</span> region <span style="color:#ff7b72">IS NULL THEN</span> <span style="color:#a5d6ff">'Unassigned'</span> <span style="color:#ff7b72">ELSE</span> <span style="color:#79c0ff">UPPER</span>(region) <span style="color:#ff7b72">END</span> <span style="color:#ff7b72">AS</span> region,
       created_at
-<span class="il">  <span style="color:#ff7b72">FROM</span> raw.customers;  <span class="in">⚠ hardcoded schema — schema rename silently breaks this</span></span>
+<span class="il">  <span style="color:#ff7b72">FROM</span> raw.customers;  <span class="in">⚠ hardcoded schema — rename silently breaks this</span></span>
 
   <span style="color:#8b949e">-- Step 2: clean orders</span>
 <span class="il">  <span style="color:#ff7b72">CREATE TEMP TABLE</span> tmp_orders <span style="color:#ff7b72">AS</span>  <span class="in">⚠ temp — same problem</span></span>
@@ -275,7 +221,7 @@ body.self .self-only{display:block}
   <span style="color:#ff7b72">LEFT JOIN</span> tmp_orders_with_payments op <span style="color:#ff7b72">ON</span> c.customer_id = op.customer_id
   <span style="color:#ff7b72">GROUP BY</span> c.customer_id, c.email, full_name, c.region;
 
-<span class="il">  <span style="color:#8b949e">-- Proc ends. All 4 temp tables are dropped automatically.
+<span class="il">  <span style="color:#8b949e">-- Proc ends. All 4 temp tables dropped automatically.
   -- If step 5 failed: no intermediate state survives to inspect.  <span class="in">⚠ debug from scratch</span></span></span>
 
 <span style="color:#ff7b72">END</span>;
@@ -283,17 +229,14 @@ $$ <span style="color:#ff7b72">LANGUAGE</span> plpgsql;</pre>
     </div>
   </div>
 
-  <div class="ann danger self-only">
+  <div class="ann danger">
     <strong>What you're looking at:</strong> One file, 5 logical steps, no visibility into intermediate state, serial execution only, hardcoded schema names, and a full overwrite on every run. It works — until it doesn't. The next tab shows what dbt does differently.
   </div>
 </div>
 
-<!-- ====================================================== -->
-<!-- TAB 2: BREAKING IT APART (click-to-transform)         -->
-<!-- ====================================================== -->
+<!-- TAB 2: BREAKING IT APART -->
 <div class="panel" id="p1">
-
-  <div class="hint self-only">
+  <div class="hint">
     <span class="hint-icon">🧩</span>
     <div>The stored proc is one file. dbt breaks it into 5 files — one per logical step. <strong>Click each block</strong> to see how that step translates into dbt, and exactly what changes.</div>
   </div>
@@ -319,7 +262,7 @@ $$ <span style="color:#ff7b72">LANGUAGE</span> plpgsql;</pre>
     <span style="color:#ff7b72">CASE WHEN</span> region <span style="color:#ff7b72">IS NULL THEN</span> <span style="color:#a5d6ff">'Unassigned'</span> <span style="color:#ff7b72">ELSE</span> <span style="color:#79c0ff">UPPER</span>(region) <span style="color:#ff7b72">END</span> <span style="color:#ff7b72">AS</span> region,
     created_at
 <span style="color:#ff7b72">FROM</span> {{ <span style="color:#d2a8ff">source</span>(<span style="color:#a5d6ff">'raw'</span>, <span style="color:#a5d6ff">'customers'</span>) }}</pre>
-        <div class="what-changed self-only"><strong>What changed:</strong> The SQL logic is identical. <code>CREATE TEMP TABLE</code> is gone — dbt handles whether to build a table or a view based on config. <code>raw.customers</code> becomes <code>source('raw','customers')</code> so dbt knows this is where raw data enters the pipeline and can test it, monitor freshness, and alert you if it stops arriving. The result is a real, persistent, queryable table in your warehouse — not a session-scoped temp that vanishes.</div>
+        <div class="what-changed"><strong>What changed:</strong> The SQL logic is identical. <code>CREATE TEMP TABLE</code> is gone — dbt handles whether to build a table or a view based on config. <code>raw.customers</code> becomes <code>source('raw','customers')</code> so dbt knows this is where raw data enters the pipeline and can test it, monitor freshness, and alert you if it stops arriving. The result is a real, persistent, queryable table in your warehouse — not a session-scoped temp that vanishes.</div>
       </div>
     </div>
   </div>
@@ -336,7 +279,7 @@ $$ <span style="color:#ff7b72">LANGUAGE</span> plpgsql;</pre>
         <pre><span style="color:#ff7b72">SELECT</span> order_id, customer_id, order_date, status, total_amount
 <span style="color:#ff7b72">FROM</span> {{ <span style="color:#d2a8ff">source</span>(<span style="color:#a5d6ff">'raw'</span>, <span style="color:#a5d6ff">'orders'</span>) }}
 <span style="color:#ff7b72">WHERE</span> order_id <span style="color:#ff7b72">IS NOT NULL</span> <span style="color:#ff7b72">AND</span> status != <span style="color:#a5d6ff">'cancelled'</span></pre>
-        <div class="what-changed self-only"><strong>What changed:</strong> Same logic, now a standalone file. If another team builds a revenue pipeline and needs clean orders, they reference <code>ref('stg_orders')</code> directly. In the stored proc world, they copy-paste <code>tmp_orders</code> into their own proc — and now "what is a valid order" is defined in two places.</div>
+        <div class="what-changed"><strong>What changed:</strong> Same logic, now a standalone file. If another team builds a revenue pipeline and needs clean orders, they reference <code>ref('stg_orders')</code> directly. In the stored proc world, they copy-paste <code>tmp_orders</code> into their own proc — and now "what is a valid order" is defined in two places.</div>
       </div>
     </div>
   </div>
@@ -355,7 +298,7 @@ $$ <span style="color:#ff7b72">LANGUAGE</span> plpgsql;</pre>
     amount <span style="color:#ff7b72">AS</span> payment_amount, created_at <span style="color:#ff7b72">AS</span> payment_date
 <span style="color:#ff7b72">FROM</span> {{ <span style="color:#d2a8ff">source</span>(<span style="color:#a5d6ff">'raw'</span>, <span style="color:#a5d6ff">'payments'</span>) }}
 <span style="color:#ff7b72">WHERE</span> payment_id <span style="color:#ff7b72">IS NOT NULL</span> <span style="color:#ff7b72">AND</span> amount > <span style="color:#79c0ff">0</span></pre>
-        <div class="what-changed self-only"><strong>What changed:</strong> Same transformation as the others. Now all three staging models — customers, orders, payments — have no dependency on each other. dbt can run all three at the same time. The proc had to run them one after another, simply because that's how a procedure works.</div>
+        <div class="what-changed"><strong>What changed:</strong> Same transformation. Now all three staging models have no dependency on each other — dbt can run all three at the same time. The proc had to run them one after another, simply because that's how a procedure works.</div>
       </div>
     </div>
   </div>
@@ -380,14 +323,14 @@ $$ <span style="color:#ff7b72">LANGUAGE</span> plpgsql;</pre>
 <span style="color:#ff7b72">FROM</span> {{ <span style="color:#d2a8ff">ref</span>(<span style="color:#a5d6ff">'stg_orders'</span>) }} o
 <span style="color:#ff7b72">LEFT JOIN</span> {{ <span style="color:#d2a8ff">ref</span>(<span style="color:#a5d6ff">'stg_payments'</span>) }} p <span style="color:#ff7b72">ON</span> o.order_id = p.order_id
 <span style="color:#ff7b72">GROUP BY</span> o.order_id, o.customer_id, o.order_date, o.total_amount</pre>
-        <div class="what-changed self-only"><strong>What changed:</strong> <code>tmp_orders</code> and <code>tmp_payments</code> become <code>ref('stg_orders')</code> and <code>ref('stg_payments')</code>. That <code>ref()</code> does two things: it declares the dependency (so dbt knows to run staging first), and it resolves the correct table name in any environment — dev, staging, or prod — automatically.</div>
+        <div class="what-changed"><strong>What changed:</strong> <code>tmp_orders</code> and <code>tmp_payments</code> become <code>ref('stg_orders')</code> and <code>ref('stg_payments')</code>. That <code>ref()</code> declares the dependency so dbt knows to run staging first, and it resolves the correct table name in any environment — dev, staging, or prod — automatically.</div>
       </div>
     </div>
   </div>
 
   <div class="code-wrap tmp-block" id="tmp5" onclick="toggleTmp('tmp5','dbt5')">
     <div class="code-head" style="background:rgba(248,81,73,.05)"><span class="lbl" style="color:#f85149">CREATE OR REPLACE TABLE fct_customer_order_summary</span><span class="badge" style="background:rgba(248,81,73,.14);color:#f85149">Full overwrite</span></div>
-    <div class="code-body"><pre><span class="il">  <span style="color:#ff7b72">CREATE OR REPLACE TABLE</span> analytics.fct_customer_order_summary <span style="color:#ff7b72">AS</span>  <span class="in">⚠ full overwrite every run — no incremental option</span></span>
+    <div class="code-body"><pre><span class="il">  <span style="color:#ff7b72">CREATE OR REPLACE TABLE</span> analytics.fct_customer_order_summary <span style="color:#ff7b72">AS</span>  <span class="in">⚠ full overwrite every run</span></span>
   <span style="color:#ff7b72">SELECT</span>
       c.customer_id, c.email,
       c.first_name || <span style="color:#a5d6ff">' '</span> || c.last_name <span style="color:#ff7b72">AS</span> full_name, c.region,
@@ -413,22 +356,19 @@ $$ <span style="color:#ff7b72">LANGUAGE</span> plpgsql;</pre>
 <span style="color:#ff7b72">LEFT JOIN</span> {{ <span style="color:#d2a8ff">ref</span>(<span style="color:#a5d6ff">'int_orders_with_payments'</span>) }} op
     <span style="color:#ff7b72">ON</span> c.customer_id = op.customer_id
 <span style="color:#ff7b72">GROUP BY</span> c.customer_id, c.email, full_name, c.region</pre>
-        <div class="what-changed self-only"><strong>You've now seen all 5 steps.</strong> The SQL didn't change meaningfully. What changed is the structure: each step is isolated, independently runnable, and inspectable. The next tab explains what the naming conventions mean and how dbt knows where data comes from.</div>
+        <div class="what-changed"><strong>You've now seen all 5 steps.</strong> The SQL didn't change meaningfully. What changed is the structure: each step is isolated, independently runnable, and inspectable. The next tab explains what the naming conventions mean and how dbt tracks where data comes from.</div>
       </div>
     </div>
   </div>
 
-  <div class="ann danger self-only">
+  <div class="ann danger">
     <strong>The pattern:</strong> Same SQL logic throughout. What dbt changes is the wrapper — <code>CREATE TEMP TABLE</code> becomes a file, <code>raw.x</code> becomes <code>source()</code>, <code>tmp_x</code> becomes <code>ref()</code>. Those three substitutions unlock everything else.
   </div>
 </div>
 
-<!-- ====================================================== -->
-<!-- TAB 3: WHERE DATA COMES FROM                          -->
-<!-- ====================================================== -->
+<!-- TAB 3: WHERE DATA COMES FROM -->
 <div class="panel" id="p2">
-
-  <div class="hint self-only">
+  <div class="hint">
     <span class="hint-icon">📂</span>
     <div>Before the lineage graph makes sense, it helps to understand what the prefixes mean and how dbt tracks where data enters and flows through the pipeline.</div>
   </div>
@@ -453,7 +393,7 @@ $$ <span style="color:#ff7b72">LANGUAGE</span> plpgsql;</pre>
     <div class="src-row"><span class="raw-s">raw.customers</span><span class="arr-s">→</span><span class="fn-s">{{ source('raw', 'customers') }}</span></div>
     <div class="src-row"><span class="raw-s">raw.orders</span><span class="arr-s">→</span><span class="fn-s">{{ source('raw', 'orders') }}</span></div>
     <div class="src-row"><span class="raw-s">raw.payments</span><span class="arr-s">→</span><span class="fn-s">{{ source('raw', 'payments') }}</span></div>
-    <div class="self-only" style="margin-top:10px;font-size:12px;color:#8b949e;line-height:1.6">The stored proc hardcoded <code style="font-family:'JetBrains Mono',monospace;font-size:10px;background:rgba(255,255,255,.07);padding:1px 4px;border-radius:3px">raw.customers</code>. If that schema renames, the proc breaks silently. <code>source()</code> registers these as official entry points — dbt can test them, check freshness, and alert you before a bad data day becomes a bad dashboard day.</div>
+    <div style="margin-top:10px;font-size:12px;color:#8b949e;line-height:1.6">The stored proc hardcoded <code style="font-family:'JetBrains Mono',monospace;font-size:10px;background:rgba(255,255,255,.07);padding:1px 4px;border-radius:3px">raw.customers</code>. If that schema renames, the proc breaks silently. <code>source()</code> registers these as official entry points — dbt can test them, check freshness, and alert you before a bad data day becomes a bad dashboard day.</div>
   </div>
 
   <div class="src-box">
@@ -461,7 +401,7 @@ $$ <span style="color:#ff7b72">LANGUAGE</span> plpgsql;</pre>
     <div class="src-row"><span class="raw-s">FROM tmp_orders</span><span class="arr-s">→</span><span class="ref-s">FROM {{ ref('stg_orders') }}</span></div>
     <div class="src-row"><span class="raw-s">FROM tmp_payments</span><span class="arr-s">→</span><span class="ref-s">FROM {{ ref('stg_payments') }}</span></div>
     <div class="src-row"><span class="raw-s">FROM tmp_customers, tmp_orders_with_payments</span><span class="arr-s">→</span><span class="ref-s">ref('stg_customers'), ref('int_orders_with_payments')</span></div>
-    <div class="self-only" style="margin-top:10px;font-size:12px;color:#8b949e;line-height:1.6">Every <code>ref()</code> is a declared dependency. dbt reads them all and builds the execution order automatically. You don't write orchestration code — the <code>ref()</code> calls <em>are</em> the orchestration.</div>
+    <div style="margin-top:10px;font-size:12px;color:#8b949e;line-height:1.6">Every <code>ref()</code> is a declared dependency. dbt reads them all and builds the execution order automatically. You don't write orchestration code — the <code>ref()</code> calls <em>are</em> the orchestration.</div>
   </div>
 
   <div class="dag-wrap">
@@ -512,17 +452,14 @@ $$ <span style="color:#ff7b72">LANGUAGE</span> plpgsql;</pre>
     </svg>
   </div>
 
-  <div class="ann self-only">
+  <div class="ann">
     <strong>This graph is the stored proc made visible.</strong> The stored procedure had this same structure — it just wasn't visible. You had to read 60 lines of SQL to understand that step 4 depended on steps 2 and 3. dbt makes it explicit, queryable, and documented automatically.
   </div>
 </div>
 
-<!-- ====================================================== -->
-<!-- TAB 4: WHAT RUNS & WHEN                               -->
-<!-- ====================================================== -->
+<!-- TAB 4: WHAT RUNS & WHEN -->
 <div class="panel" id="p3">
-
-  <div class="hint self-only">
+  <div class="hint">
     <span class="hint-icon">⚡</span>
     <div>The stored proc runs all 5 steps serially — that's the only option. dbt reads the dependency graph and runs independent models simultaneously across threads.</div>
   </div>
@@ -548,112 +485,83 @@ $$ <span style="color:#ff7b72">LANGUAGE</span> plpgsql;</pre>
     </div>
   </div>
 
-  <div class="self-only" style="background:#161b22;border:1px solid #2d333b;border-radius:9px;padding:14px 16px;margin-bottom:16px;font-size:12px;color:#8b949e;line-height:1.6">
+  <div style="background:#161b22;border:1px solid #2d333b;border-radius:9px;padding:14px 16px;margin-bottom:16px;font-size:12px;color:#8b949e;line-height:1.6">
     <strong style="color:#e6edf3;display:block;margin-bottom:5px">How does dbt know it can parallelize?</strong>
-    Because <code style="font-family:'JetBrains Mono',monospace;font-size:10px;background:rgba(255,255,255,.07);padding:1px 4px;border-radius:3px">stg_customers</code>, <code style="font-family:'JetBrains Mono',monospace;font-size:10px;background:rgba(255,255,255,.07);padding:1px 4px;border-radius:3px">stg_orders</code>, and <code style="font-family:'JetBrains Mono',monospace;font-size:10px;background:rgba(255,255,255,.07);padding:1px 4px;border-radius:3px">stg_payments</code> each only reference <code>source()</code> — they have no <code>ref()</code> edges between them. dbt reads the graph, sees no dependencies, and dispatches all three at once. You didn't write orchestration code to make this happen — the <code>ref()</code> declarations from tab 2 are the orchestration.
+    Because <code style="font-family:'JetBrains Mono',monospace;font-size:10px;background:rgba(255,255,255,.07);padding:1px 4px;border-radius:3px">stg_customers</code>, <code style="font-family:'JetBrains Mono',monospace;font-size:10px;background:rgba(255,255,255,.07);padding:1px 4px;border-radius:3px">stg_orders</code>, and <code style="font-family:'JetBrains Mono',monospace;font-size:10px;background:rgba(255,255,255,.07);padding:1px 4px;border-radius:3px">stg_payments</code> each only reference <code>source()</code> — they have no <code>ref()</code> edges between them. dbt reads the graph, sees no dependencies, and dispatches all three at once. The <code>ref()</code> declarations from tab 2 are the orchestration — you didn't write any extra config to make this happen.
   </div>
 
-  <div class="ann self-only">
+  <div class="ann">
     <strong>At scale:</strong> This example has 5 models. Real projects have hundreds. A pipeline with 40 independent staging models runs in roughly the time it takes to run one, given enough threads.
   </div>
 </div>
 
-<!-- ====================================================== -->
-<!-- TAB 5: WHEN THINGS BREAK                              -->
-<!-- ====================================================== -->
+<!-- TAB 5: WHEN THINGS BREAK -->
 <div class="panel" id="p4">
-
-  <div class="hint self-only">
+  <div class="hint">
     <span class="hint-icon">🔬</span>
     <div>The stored proc works until it doesn't. When it breaks, the debugging experience is fundamentally different. <strong>Click each scenario</strong> to compare.</div>
   </div>
 
   <div class="debug-scenario">
-    <div class="debug-trigger" onclick="toggleDebug(this)">
-      <span class="sname">Pipeline fails at the join step (step 4)</span>
-      <span class="chevron">▼</span>
-    </div>
+    <div class="debug-trigger" onclick="toggleDebug(this)"><span class="sname">Pipeline fails at the join step (step 4)</span><span class="chevron">▼</span></div>
     <div class="debug-body">
       <div class="debug-split">
-        <div class="dc"><div class="ch">stored procedure</div>
-          <p>Step 4 failed. The temp tables from steps 1–3 are gone — they died with the session. Re-run the entire procedure from the top to reproduce the failure. Every debug cycle = full re-run.</p></div>
-        <div class="dc"><div class="ch">dbt</div>
-          <p>Step 4 failed. <code>stg_orders</code> and <code>stg_payments</code> are still in the warehouse. Run <code>dbt run -s int_orders_with_payments</code> to re-execute only that model. Upstream work stays intact.</p></div>
+        <div class="dc"><div class="ch">stored procedure</div><p>Step 4 failed. The temp tables from steps 1–3 are gone — they died with the session. Re-run the entire procedure from the top to reproduce the failure. Every debug cycle = full re-run.</p></div>
+        <div class="dc"><div class="ch">dbt</div><p>Step 4 failed. <code>stg_orders</code> and <code>stg_payments</code> are still in the warehouse. Run <code>dbt run -s int_orders_with_payments</code> to re-execute only that model. Upstream work stays intact.</p></div>
       </div>
-      <div class="debug-self-note">The difference comes from one thing: dbt models are real tables in your warehouse. Stored proc temp tables aren't. That's the whole game.</div>
+      <div class="debug-note">The difference comes from one thing: dbt models are real tables in your warehouse. Stored proc temp tables aren't. That's the whole game.</div>
     </div>
   </div>
 
   <div class="debug-scenario">
-    <div class="debug-trigger" onclick="toggleDebug(this)">
-      <span class="sname">Wrong row count in the final output</span>
-      <span class="chevron">▼</span>
-    </div>
+    <div class="debug-trigger" onclick="toggleDebug(this)"><span class="sname">Wrong row count in the final output</span><span class="chevron">▼</span></div>
     <div class="debug-body">
       <div class="debug-split">
-        <div class="dc"><div class="ch">stored procedure</div>
-          <p>Fan-out in the join? Bad filter in step 2? You add temp debug tables mid-proc, re-run everything, and manually query each one. Multiple cycles to isolate.</p></div>
-        <div class="dc"><div class="ch">dbt</div>
-          <p>Query <code>stg_orders</code> — how many rows? Query <code>int_orders_with_payments</code> — how many? The difference shows exactly where the fan-out happened. No re-run needed.</p></div>
+        <div class="dc"><div class="ch">stored procedure</div><p>Fan-out in the join? Bad filter in step 2? You add temp debug tables mid-proc, re-run everything, and manually query each one. Multiple cycles to isolate.</p></div>
+        <div class="dc"><div class="ch">dbt</div><p>Query <code>stg_orders</code> — how many rows? Query <code>int_orders_with_payments</code> — how many? The difference shows exactly where the fan-out happened. No re-run needed.</p></div>
       </div>
-      <div class="debug-self-note">Because every intermediate model is a real table, you can bisect a row count problem the same way you'd bisect a bug in code — without re-running anything.</div>
+      <div class="debug-note">Because every intermediate model is a real table, you can bisect a row count problem the same way you'd bisect a bug in code — without re-running anything.</div>
     </div>
   </div>
 
   <div class="debug-scenario">
-    <div class="debug-trigger" onclick="toggleDebug(this)">
-      <span class="sname">Upstream schema change — a column got renamed</span>
-      <span class="chevron">▼</span>
-    </div>
+    <div class="debug-trigger" onclick="toggleDebug(this)"><span class="sname">Upstream schema change — a column got renamed</span><span class="chevron">▼</span></div>
     <div class="debug-body">
       <div class="debug-split">
-        <div class="dc"><div class="ch">stored procedure</div>
-          <p>The proc either silently returns NULLs or throws an error. You find out when a BI dashboard breaks. Trace back through the proc to find which temp table was affected.</p></div>
-        <div class="dc"><div class="ch">dbt</div>
-          <p><code>stg_payments</code> is the only model that touches <code>raw.payments</code>. Fix it there. Every downstream model gets the fix automatically on the next run. One change point, not five.</p></div>
+        <div class="dc"><div class="ch">stored procedure</div><p>The proc either silently returns NULLs or throws an error. You find out when a BI dashboard breaks. Trace back through the proc to find which temp table was affected.</p></div>
+        <div class="dc"><div class="ch">dbt</div><p><code>stg_payments</code> is the only model that touches <code>raw.payments</code>. Fix it there. Every downstream model gets the fix automatically on the next run. One change point, not five.</p></div>
       </div>
-      <div class="debug-self-note">The <code>stg_</code> layer acts as an isolation boundary. Raw schema changes only affect one file — the staging model for that source.</div>
+      <div class="debug-note">The <code>stg_</code> layer acts as an isolation boundary. Raw schema changes only affect one file — the staging model for that source.</div>
     </div>
   </div>
 
   <div class="debug-scenario">
-    <div class="debug-trigger" onclick="toggleDebug(this)">
-      <span class="sname">3am on-call alert fires</span>
-      <span class="chevron">▼</span>
-    </div>
+    <div class="debug-trigger" onclick="toggleDebug(this)"><span class="sname">3am on-call alert fires</span><span class="chevron">▼</span></div>
     <div class="debug-body">
       <div class="debug-split">
-        <div class="dc"><div class="ch">stored procedure</div>
-          <p>Connect to the DB. No intermediate state anywhere. Re-run the full proc to reproduce. Add <code>RAISE NOTICE</code> statements. Re-run again. 45 minutes of archaeology before you even start fixing.</p></div>
-        <div class="dc"><div class="ch">dbt</div>
-          <p>dbt run logs show the exact model that failed and the exact error. Intermediate models are still in the warehouse. Run only the failed model, fix, run downstream only.</p></div>
+        <div class="dc"><div class="ch">stored procedure</div><p>Connect to the DB. No intermediate state anywhere. Re-run the full proc to reproduce. Add <code>RAISE NOTICE</code> statements. Re-run again. 45 minutes of archaeology before you even start fixing.</p></div>
+        <div class="dc"><div class="ch">dbt</div><p>dbt run logs show the exact model that failed and the exact error. Intermediate models are still in the warehouse. Run only the failed model, fix, run downstream only.</p></div>
       </div>
-      <div class="debug-self-note">This scenario is where the compounding value becomes visceral. The engineer on-call at 3am cares a lot about whether the intermediate state survived.</div>
+      <div class="debug-note">This is where the value becomes visceral. The engineer on-call at 3am cares a lot about whether the intermediate state survived.</div>
     </div>
   </div>
 
   <div class="debug-scenario">
-    <div class="debug-trigger" onclick="toggleDebug(this)">
-      <span class="sname">What else depends on orders data?</span>
-      <span class="chevron">▼</span>
-    </div>
+    <div class="debug-trigger" onclick="toggleDebug(this)"><span class="sname">What else depends on orders data?</span><span class="chevron">▼</span></div>
     <div class="debug-body">
       <div class="debug-split">
-        <div class="dc"><div class="ch">stored procedure</div>
-          <p>Grep the codebase and hope nothing uses <code>tmp_orders</code> in another proc you don't know about. No system-of-record for dependencies.</p></div>
-        <div class="dc"><div class="ch">dbt</div>
-          <p>The lineage graph shows every downstream model that references <code>stg_orders</code>. Click on it in the dbt DAG and see the full impact of any change.</p></div>
+        <div class="dc"><div class="ch">stored procedure</div><p>Grep the codebase and hope nothing uses <code>tmp_orders</code> in another proc you don't know about. No system-of-record for dependencies.</p></div>
+        <div class="dc"><div class="ch">dbt</div><p>The lineage graph shows every downstream model that references <code>stg_orders</code>. Click on it in the dbt DAG and see the full impact of any change instantly.</p></div>
       </div>
-      <div class="debug-self-note">This is a bigger deal as the team grows. A new engineer can answer "what depends on this?" in 5 seconds with the DAG instead of 30 minutes of codebase archaeology.</div>
+      <div class="debug-note">A new engineer can answer "what depends on this?" in 5 seconds with the DAG instead of 30 minutes of codebase archaeology.</div>
     </div>
   </div>
 
-  <div class="ann ok" style="margin-top:18px">
+  <div class="ann ok">
     <strong>The root cause of every dbt debugging advantage:</strong> Intermediate models are real, persistent, queryable tables. Stored proc temp tables aren't. Every other difference flows from that one fact.
   </div>
 </div>
 
-<!-- bottom nav -->
 <div class="bottom-nav">
   <button class="btn-nav" id="btn-prev" onclick="step(-1)" disabled>← back</button>
   <span class="step-ind" id="step-ind">1 / 5</span>
@@ -678,11 +586,6 @@ function go(n){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function step(d){var n=cur+d;if(n>=0&&n<total)go(n);}
-function setMode(m){
-  document.body.className=m;
-  document.getElementById('btn-demo').classList.toggle('active',m==='demo');
-  document.getElementById('btn-self').classList.toggle('active',m==='self');
-}
 function toggleTmp(bid,rid){
   var b=document.getElementById(bid),r=document.getElementById(rid);
   var open=r.classList.contains('show');

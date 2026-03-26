@@ -1,17 +1,25 @@
-# dbt vs Stored Procedures — Interactive Walkthrough
+# dbt Interactive Walkthroughs
 
-An interactive explainer for understanding what dbt solves compared to 
-stored procedures. Built for demos and self-serve reading.
+Hands-on, self-serve explainers for understanding how dbt works. Each walkthrough is a self-contained HTML file — no setup needed.
 
-**[View it live →](https://cedricturner.github.io/dbt-vs-stored-procs)**
+**[Browse all walkthroughs →](https://cedricturner.github.io/dbt-artifacts)**
 
-## What's inside
-- Full stored procedure with annotated problem areas
-- Click-to-transform: each temp table reveals its dbt equivalent inline
-- Lineage graph, parallel execution comparison, and debugging scenarios
-- **Demo mode** — minimal text, presenter narrates
-- **Self-serve mode** — full explanations, shareable async
+## Walkthroughs
+
+| Walkthrough | Topic | Description |
+|---|---|---|
+| [dbt vs Stored Procedures](./dbt-vs-stored-procs/) | Data Modeling | How dbt transforms a tangled stored procedure into clean, testable, modular SQL |
+| [dbt Connection Modes](./dbt-connection-modes/) | Infrastructure | How dbt authenticates and connects to your data platform — from profiles.yml to dbt Cloud |
+
+## Structure
+```
+dbt-artifacts/
+├── index.html                    # landing hub
+├── dbt-vs-stored-procs/
+│   └── index.html
+└── dbt-connection-modes/
+    └── index.html
+```
 
 ## Usage
-No setup needed. Download `index.html` and open in any browser, or use 
-the live link above.
+Download any `index.html` and open in a browser, or use the live links above.

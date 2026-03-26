@@ -3,603 +3,706 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>dbt Connection Modes — Interactive Walkthrough</title>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<title>How dbt connects to your data platform</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'DM Sans',sans-serif;background:#0e1117;color:#e6edf3;min-height:100vh;overflow-x:hidden}
-.app{max-width:1020px;margin:0 auto;padding:40px 20px 80px}
+  :root {
+    --blue-50:#E6F1FB;--blue-100:#B5D4F4;--blue-600:#185FA5;--blue-800:#0C447C;
+    --teal-50:#E1F5EE;--teal-100:#9FE1CB;--teal-600:#0F6E56;--teal-800:#085041;
+    --amber-50:#FAEEDA;--amber-600:#854F0B;--amber-800:#633806;
+    --coral-50:#FAECE7;--coral-600:#993C1D;--coral-800:#712B13;
+    --purple-50:#EEEDFE;--purple-600:#534AB7;--purple-800:#3C3489;
+    --green-50:#EAF3DE;--green-600:#3B6D11;--green-800:#27500A;
+    --gray-50:#F1EFE8;--gray-600:#5F5E5A;--gray-800:#444441;
+    --bg:#fff;--bg2:#f7f6f3;--border:rgba(0,0,0,0.1);
+    --text:#1a1a18;--muted:#5f5e5a;--subtle:#9c9a92;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  }
+  @media(prefers-color-scheme:dark){
+    :root{
+      --blue-50:#042C53;--blue-100:#0C447C;--blue-600:#85B7EB;--blue-800:#B5D4F4;
+      --teal-50:#04342C;--teal-100:#085041;--teal-600:#5DCAA5;--teal-800:#9FE1CB;
+      --amber-50:#412402;--amber-600:#EF9F27;--amber-800:#FAC775;
+      --coral-50:#4A1B0C;--coral-600:#D85A30;--coral-800:#F0997B;
+      --purple-50:#26215C;--purple-600:#7F77DD;--purple-800:#AFA9EC;
+      --green-50:#173404;--green-600:#639922;--green-800:#97C459;
+      --gray-50:#2C2C2A;--gray-600:#B4B2A9;--gray-800:#D3D1C7;
+      --bg:#1c1c1a;--bg2:#242422;--border:rgba(255,255,255,0.1);
+      --text:#e8e6de;--muted:#b4b2a9;--subtle:#6e6d67;
+    }
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);line-height:1.6;max-width:960px;margin:0 auto;padding:28px 20px 64px}
+  h1{font-size:19px;font-weight:500;margin-bottom:3px}
+  .subtitle{font-size:13px;color:var(--muted);margin-bottom:20px}
 
-.hdr{text-align:center;margin-bottom:40px}
-.hdr-tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#ff6b35;background:rgba(255,107,53,.1);border:1px solid rgba(255,107,53,.25);padding:4px 13px;border-radius:99px;margin-bottom:14px}
-.hdr h1{font-size:clamp(22px,4vw,36px);font-weight:600;line-height:1.2;margin-bottom:10px;color:#fff}
-.hdr p{color:#8b949e;font-size:14px;max-width:540px;margin:0 auto;line-height:1.6}
+  .audience-bar{display:flex;align-items:center;gap:10px;margin-bottom:24px;flex-wrap:wrap}
+  .audience-label{font-size:12px;color:var(--muted);font-weight:500}
+  .aud-btn{padding:6px 14px;font-size:13px;font-weight:500;cursor:pointer;border:0.5px solid var(--border);border-radius:20px;background:none;color:var(--muted);transition:all .15s}
+  .aud-btn:hover{color:var(--text);border-color:var(--text)}
+  .aud-btn.active{background:var(--text);color:var(--bg);border-color:var(--text)}
 
-.nav{display:flex;align-items:center;margin-bottom:32px;background:#161b22;border:1px solid #2d333b;border-radius:12px;padding:5px;gap:3px;flex-wrap:wrap}
-.nav-step{flex:1;min-width:80px;display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 6px;border-radius:8px;cursor:pointer;border:none;background:transparent;color:#8b949e;transition:all .2s;font-family:'DM Sans',sans-serif}
-.nav-step:hover{background:#1c2129;color:#e6edf3}
-.nav-step.active{background:#ff6b35;color:#fff;box-shadow:0 2px 10px rgba(255,107,53,.3)}
-.nav-step.done .step-num{background:rgba(63,185,80,.25);color:#3fb950}
-.step-num{width:19px;height:19px;border-radius:50%;background:rgba(255,255,255,.1);font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.nav-step.active .step-num{background:rgba(255,255,255,.25)}
-.step-lbl{font-size:11px;font-weight:500;text-align:center;line-height:1.3}
+  .tabs{display:flex;gap:2px;border-bottom:0.5px solid var(--border);margin-bottom:22px;flex-wrap:wrap}
+  .tab{padding:7px 13px;font-size:13px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-0.5px;transition:color .15s;white-space:nowrap}
+  .tab:hover{color:var(--text)}
+  .tab.active{color:var(--text);border-bottom-color:var(--text)}
+  .panel{display:none}.panel.active{display:block}
 
-.panel{display:none;animation:fi .3s ease}
-.panel.active{display:block}
-@keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+  .summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:20px}
+  .metric{background:var(--bg2);border-radius:6px;padding:10px 12px}
+  .metric-label{font-size:11px;color:var(--muted);margin-bottom:3px}
+  .metric-value{font-size:13px;font-weight:500}
+  .good{color:var(--green-600)}.warn{color:var(--amber-600)}.bad{color:var(--coral-600)}.neutral{color:var(--muted)}
 
-.hint{display:flex;align-items:flex-start;gap:11px;background:#161b22;border:1px solid #2d333b;border-radius:9px;padding:14px 16px;margin-bottom:20px;font-size:13px;color:#8b949e;line-height:1.55}
-.hint-icon{font-size:16px;flex-shrink:0;margin-top:1px}
-.hint strong{color:#e6edf3}
-.hint code{font-family:'JetBrains Mono',monospace;font-size:12px;background:#0d1117;padding:1px 5px;border-radius:3px}
+  .diagram-wrap{background:var(--bg2);border-radius:10px;padding:16px;margin-bottom:16px}
+  .hint{font-size:11px;color:var(--subtle);margin-bottom:8px}
 
-.code-wrap{border-radius:9px;overflow:hidden;border:2px solid #2d333b;margin-bottom:12px}
-.code-head{display:flex;align-items:center;justify-content:space-between;padding:9px 15px;background:#161b22;border-bottom:1px solid #2d333b}
-.lbl{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.3px}
-.badge{font-family:'JetBrains Mono',monospace;font-size:9px;padding:2px 8px;border-radius:99px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
-.code-body{background:#0d1117;padding:15px 17px;overflow-x:auto}
-.code-body pre{font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:1.72;color:#e6edf3;white-space:pre}
+  .explain-box{background:var(--bg);border:0.5px solid var(--border);border-radius:10px;padding:13px 15px;margin-bottom:14px;display:none}
+  .explain-box.visible{display:block}
+  .explain-title{font-weight:500;font-size:13px;margin-bottom:3px}
+  .explain-body{color:var(--muted);font-size:13px;line-height:1.65}
 
-.hl{display:block;margin:0 -17px;padding:0 17px;border-left:3px solid #58a6ff;background:rgba(88,166,255,.07)}
-.gl{display:block;margin:0 -17px;padding:0 17px;border-left:3px solid #3fb950;background:rgba(63,185,80,.07)}
-.wl{display:block;margin:0 -17px;padding:0 17px;border-left:3px solid #d29922;background:rgba(210,153,34,.07)}
-.pl{display:block;margin:0 -17px;padding:0 17px;border-left:3px solid #d2a8ff;background:rgba(210,168,255,.07)}
-.rl{display:block;margin:0 -17px;padding:0 17px;border-left:3px solid #f85149;background:rgba(248,81,73,.07)}
-.an{font-size:10px;font-style:italic}
-.an-b{color:#58a6ff}.an-g{color:#3fb950}.an-w{color:#d29922}.an-p{color:#d2a8ff}.an-r{color:#f85149}
+  .callout{border-left:3px solid var(--border);padding:10px 14px;font-size:13px;color:var(--muted);line-height:1.65;border-radius:0 6px 6px 0;background:var(--bg2);margin-bottom:18px}
+  .callout strong{color:var(--text)}
 
-.flow{display:flex;align-items:center;margin-bottom:20px;overflow-x:auto;padding:20px 0;gap:0}
-.flow-node{background:#161b22;border:1px solid #2d333b;border-radius:8px;padding:13px 18px;text-align:center;min-width:120px;flex-shrink:0}
-.flow-node .fn-title{font-size:12px;font-weight:600;color:#e6edf3;margin-bottom:3px}
-.flow-node .fn-sub{font-size:10px;color:#8b949e;font-family:'JetBrains Mono',monospace}
-.flow-node.highlight{border-color:#ff6b35;background:rgba(255,107,53,.07)}
-.flow-node.highlight .fn-title{color:#ff6b35}
-.flow-arrow{color:#444c56;font-size:20px;padding:0 10px;flex-shrink:0;user-select:none}
+  .support-box{background:var(--bg2);border-radius:10px;padding:14px 16px;margin-bottom:16px;border:0.5px solid var(--border)}
+  .support-box-title{font-size:13px;font-weight:500;margin-bottom:8px;color:var(--text);display:flex;align-items:center;gap:7px}
+  .support-row{display:flex;gap:16px;flex-wrap:wrap}
+  .support-col{flex:1;min-width:160px}
+  .support-col-label{font-size:11px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;color:var(--subtle);margin-bottom:4px}
+  .support-col-body{font-size:12px;color:var(--muted);line-height:1.6}
+  .dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
 
-.target-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:18px}
-.target-card{background:#161b22;border-radius:9px;padding:13px 15px}
-.target-card .tc-name{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;margin-bottom:5px}
-.target-card .tc-desc{font-size:11px;color:#8b949e;line-height:1.5}
+  /* PL config selector */
+  .pl-selector{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:18px}
+  .pl-opt{background:var(--bg2);border-radius:10px;padding:14px 16px;border:1.5px solid transparent;cursor:pointer;transition:border-color .15s}
+  .pl-opt:hover{border-color:var(--subtle)}
+  .pl-opt.selected{border-color:var(--text)}
+  .pl-opt-tag{display:inline-block;font-size:10px;font-weight:500;padding:2px 7px;border-radius:20px;margin-bottom:8px}
+  .pl-opt-title{font-size:13px;font-weight:500;margin-bottom:4px}
+  .pl-opt-body{font-size:12px;color:var(--muted);line-height:1.6}
 
-.auth-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
-.auth-card{background:#161b22;border:1px solid #2d333b;border-radius:9px;padding:14px 15px;cursor:pointer;transition:all .2s}
-.auth-card:hover{border-color:#58a6ff;background:#1c2129}
-.auth-card.selected{border-color:#ff6b35;background:rgba(255,107,53,.05)}
-.auth-title{font-size:13px;font-weight:600;margin-bottom:4px;color:#e6edf3}
-.auth-sub{font-size:11px;color:#8b949e;line-height:1.4;margin-bottom:9px}
-.auth-platforms{display:flex;gap:5px;flex-wrap:wrap}
-.auth-pill{font-family:'JetBrains Mono',monospace;font-size:9px;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,.07);color:#8b949e}
+  .section-label{font-size:11px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;color:var(--subtle);margin-bottom:12px;margin-top:4px}
+  .comparison{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:20px}
+  .comparison th{text-align:left;padding:8px 9px;border-bottom:0.5px solid var(--border);font-weight:500;font-size:11px;color:var(--muted)}
+  .comparison td{padding:8px 9px;border-bottom:0.5px solid var(--border);vertical-align:top}
+  .comparison tr:last-child td{border-bottom:none}
+  .rl{font-weight:500;color:var(--text);font-size:12px}
+  .badge{display:inline-block;font-size:10px;font-weight:500;padding:2px 6px;border-radius:20px;white-space:nowrap}
+  .bg{background:var(--green-50);color:var(--green-800)}.ba{background:var(--amber-50);color:var(--amber-800)}
+  .bc{background:var(--coral-50);color:var(--coral-800)}.bgr{background:var(--gray-50);color:var(--gray-800)}
+  .nc{cursor:pointer}.nc:hover rect{opacity:.82}
 
-.auth-detail{display:none;margin-bottom:18px}
-.auth-detail.show{display:block}
+  .plain-steps{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+  .plain-step{display:flex;gap:12px;align-items:flex-start}
+  .step-num{width:24px;height:24px;border-radius:50%;background:var(--text);color:var(--bg);font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+  .step-body{font-size:13px;color:var(--muted);line-height:1.65}
+  .step-body strong{color:var(--text)}
 
-.callout{border-radius:7px;padding:11px 13px;margin-top:9px;font-size:12px;color:#8b949e;line-height:1.6}
-.callout code{font-family:'JetBrains Mono',monospace;font-size:11px;background:#0d1117;padding:1px 5px;border-radius:3px}
-.callout-warn{background:#0f1117;border:1px solid rgba(248,81,73,.2)}
-.callout-good{background:#080f08;border:1px solid rgba(63,185,80,.2)}
-
-.platform-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
-.platform-card{background:#161b22;border:1px solid #2d333b;border-radius:9px;overflow:hidden}
-.platform-card.sf{border-top:3px solid #29b5e8}
-.platform-card.bq{border-top:3px solid #4285f4}
-.platform-card.db{border-top:3px solid #ff3621}
-.platform-card.rs{border-top:3px solid #8c4fff}
-.platform-head{padding:11px 15px;border-bottom:1px solid #2d333b;display:flex;align-items:center;gap:8px}
-.platform-name{font-size:13px;font-weight:600}
-.platform-tag{font-family:'JetBrains Mono',monospace;font-size:9px;padding:2px 7px;border-radius:99px;font-weight:600}
-.sf .platform-name{color:#29b5e8}.sf .platform-tag{background:rgba(41,181,232,.15);color:#29b5e8}
-.bq .platform-name{color:#4285f4}.bq .platform-tag{background:rgba(66,133,244,.15);color:#4285f4}
-.db .platform-name{color:#ff3621}.db .platform-tag{background:rgba(255,54,33,.15);color:#ff3621}
-.rs .platform-name{color:#8c4fff}.rs .platform-tag{background:rgba(140,79,255,.15);color:#8c4fff}
-.platform-body{padding:13px 15px}
-.platform-body pre{font-family:'JetBrains Mono',monospace;font-size:10.5px;line-height:1.7;color:#e6edf3;white-space:pre}
-
-.compare-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
-.compare-block{background:#161b22;border:1px solid #2d333b;border-radius:9px;padding:14px 16px}
-.compare-block h4{font-size:11px;font-weight:600;margin-bottom:12px;text-transform:uppercase;letter-spacing:1px;font-family:'JetBrains Mono',monospace}
-.compare-block.core h4{color:#8b949e}
-.compare-block.cloud{border-color:rgba(63,185,80,.3)}
-.compare-block.cloud h4{color:#3fb950}
-.check-row{display:flex;align-items:flex-start;gap:8px;font-size:12px;color:#8b949e;margin-bottom:8px;line-height:1.45}
-.check-row .ci{flex-shrink:0;margin-top:1px}
-.check-row strong{color:#e6edf3}
-
-.bp-list{display:flex;flex-direction:column;gap:10px;margin-bottom:18px}
-.bp-item{display:flex;align-items:flex-start;gap:12px;background:#161b22;border:1px solid #2d333b;border-radius:9px;padding:13px 15px}
-.bp-item.good{border-left:3px solid #3fb950}
-.bp-item.warn{border-left:3px solid #f85149}
-.bp-icon{font-size:18px;flex-shrink:0}
-.bp-title{font-size:13px;font-weight:600;margin-bottom:3px;color:#e6edf3}
-.bp-desc{font-size:12px;color:#8b949e;line-height:1.5}
-.bp-desc code{font-family:'JetBrains Mono',monospace;font-size:11px;background:#0d1117;padding:1px 5px;border-radius:3px}
-
-.nav-btns{display:flex;justify-content:space-between;margin-top:28px;gap:10px}
-.btn{padding:9px 20px;border-radius:8px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;transition:all .2s}
-.btn-sec{background:#161b22;border:1px solid #2d333b;color:#8b949e}
-.btn-sec:hover{color:#e6edf3;border-color:#444c56}
-.btn-pri{background:#ff6b35;color:#fff}
-.btn-pri:hover{background:#e85d2a;box-shadow:0 2px 10px rgba(255,107,53,.3)}
-.btn:disabled{opacity:.3;cursor:not-allowed}
-
-.back-link{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#444c56;text-decoration:none;margin-bottom:28px;transition:color .2s}
-.back-link:hover{color:#8b949e}
-
-.mode-bar{display:flex;justify-content:flex-end;margin-bottom:20px;gap:8px;align-items:center}
-.mode-lbl{font-size:11px;color:#444c56}
-.mode-btn{padding:5px 12px;border-radius:6px;border:1px solid #2d333b;background:transparent;color:#8b949e;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s}
-.mode-btn.active{background:#161b22;color:#e6edf3;border-color:#444c56}
-.self-only{display:block}
-.demo-only{display:none}
-body.demo-mode .self-only{display:none}
-body.demo-mode .demo-only{display:block}
-
-@media(max-width:640px){
-  .platform-grid,.auth-grid,.compare-row,.target-row{grid-template-columns:1fr}
-  .flow{flex-wrap:wrap}
-}
+  .for-everyone{display:none}.for-security{display:none}
+  body.aud-everyone .for-everyone{display:block}
+  body.aud-security .for-security{display:block}
 </style>
 </head>
-<body>
-<div class="app">
+<body class="aud-everyone">
 
-<a href="../" class="back-link">← all walkthroughs</a>
+<h1>How dbt connects to your data platform</h1>
+<p class="subtitle">A guide to every connection model, from dbt Core to single-tenant enterprise. Click any component to learn more.</p>
 
-<div class="mode-bar">
-  <span class="mode-lbl">mode:</span>
-  <button class="mode-btn active" id="btn-self" onclick="setMode('self')">self-serve</button>
-  <button class="mode-btn" id="btn-demo" onclick="setMode('demo')">demo</button>
+<div class="audience-bar">
+  <span class="audience-label">I am reading this as:</span>
+  <button class="aud-btn active" onclick="setAud('everyone',this)">Non-security person</button>
+  <button class="aud-btn" onclick="setAud('security',this)">Security person</button>
 </div>
 
-<div class="hdr">
-  <div class="hdr-tag">interactive walkthrough</div>
-  <h1>How dbt Connects to Your Data Platform</h1>
-  <p>From a credentials file on your laptop to a secure service account in production — understand every layer of dbt's connection model.</p>
+<div class="tabs">
+  <button class="tab active" onclick="showTab('core',this)">dbt Core</button>
+  <button class="tab" onclick="showTab('multi',this)">Platform: multi-tenant</button>
+  <button class="tab" onclick="showTab('single',this)">Platform: single-tenant</button>
+  <button class="tab" onclick="showTab('pl',this)">Private connections</button>
+  <button class="tab" onclick="showTab('compare',this)">Compare all</button>
 </div>
 
-<div class="nav">
-  <button class="nav-step active" onclick="go(0)"><span class="step-num">1</span><span class="step-lbl">The Big Picture</span></button>
-  <button class="nav-step" onclick="go(1)"><span class="step-num">2</span><span class="step-lbl">profiles.yml</span></button>
-  <button class="nav-step" onclick="go(2)"><span class="step-num">3</span><span class="step-lbl">Auth Methods</span></button>
-  <button class="nav-step" onclick="go(3)"><span class="step-num">4</span><span class="step-lbl">Platform Adapters</span></button>
-  <button class="nav-step" onclick="go(4)"><span class="step-num">5</span><span class="step-lbl">dbt Cloud</span></button>
-  <button class="nav-step" onclick="go(5)"><span class="step-num">6</span><span class="step-lbl">Best Practices</span></button>
-</div>
+<!-- ==================== dbt CORE ==================== -->
+<div id="tab-core" class="panel active">
 
-<!-- ═══ PANEL 1: Big Picture ═══ -->
-<div class="panel active" id="panel-0">
-  <div class="hint self-only">
-    <span class="hint-icon">💡</span>
-    <div><strong>dbt doesn't store data — it runs SQL against your warehouse.</strong> To do that, it needs to know: what platform to connect to, where on that platform, and who you are. This walkthrough covers every layer of that connection model.</div>
-  </div>
-  <div class="hint demo-only">
-    <span class="hint-icon">🔌</span>
-    <div><strong>dbt needs a connection to run.</strong> Let's follow the path from your machine to the warehouse.</div>
-  </div>
-
-  <div class="flow">
-    <div class="flow-node"><div class="fn-title">dbt CLI / Cloud</div><div class="fn-sub">runs your project</div></div>
-    <div class="flow-arrow">→</div>
-    <div class="flow-node highlight"><div class="fn-title">Connection Config</div><div class="fn-sub">profiles.yml or UI</div></div>
-    <div class="flow-arrow">→</div>
-    <div class="flow-node"><div class="fn-title">Adapter</div><div class="fn-sub">dbt-snowflake etc.</div></div>
-    <div class="flow-arrow">→</div>
-    <div class="flow-node"><div class="fn-title">Data Platform</div><div class="fn-sub">Snowflake / BQ / etc.</div></div>
-    <div class="flow-arrow">→</div>
-    <div class="flow-node"><div class="fn-title">Target Schema</div><div class="fn-sub">where models land</div></div>
-  </div>
-
-  <div class="code-wrap">
-    <div class="code-head"><span class="lbl" style="color:#ff6b35">Three things every dbt connection needs</span></div>
-    <div class="code-body"><pre><span class="hl"><span class="an an-b"># 1. WHAT — the platform type (drives which adapter is used)</span>
-type: snowflake
-</span>
-<span class="hl"><span class="an an-b"># 2. WHERE — account location, database, schema, and warehouse/compute</span>
-account: abc123.us-east-1
-database: ANALYTICS
-schema: dbt_dev
-warehouse: COMPUTE_WH
-</span>
-<span class="gl"><span class="an an-g"># 3. WHO — authentication (covered in step 3)</span>
-user: jane@company.com
-password: "{{ env_var('DBT_PASSWORD') }}"
-</span></pre></div>
-  </div>
-
-  <div class="self-only">
-    <div class="callout callout-good">
-      The adapter (<code>dbt-snowflake</code>, <code>dbt-bigquery</code>, etc.) is the bridge between dbt's generic SQL compilation and each platform's specific connection protocol. You install it as a Python package alongside dbt Core, or it's bundled in dbt Cloud.
+  <div class="for-everyone">
+    <p style="font-size:13px;color:var(--muted);margin-bottom:14px">dbt Core is free software your team installs and runs on your own computers or servers. dbt Labs writes the software, but once you download it, your team controls everything, including how it connects to your database.</p>
+    <div class="diagram-wrap">
+      <svg width="100%" viewBox="0 0 680 160">
+        <defs><marker id="e1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+        <!-- Your computer -->
+        <rect x="30" y="56" width="160" height="48" rx="8" fill="var(--gray-50)" stroke="var(--gray-600)" stroke-width="0.5"/>
+        <text x="110" y="75" text-anchor="middle" fill="var(--gray-800)" font-size="12" font-weight="500" font-family="inherit">Your computer</text>
+        <text x="110" y="94" text-anchor="middle" fill="var(--gray-600)" font-size="10" font-family="inherit">(or your servers)</text>
+        <!-- dbt core label inside -->
+        <rect x="210" y="56" width="150" height="48" rx="8" fill="var(--blue-50)" stroke="var(--blue-600)" stroke-width="0.5"/>
+        <text x="285" y="75" text-anchor="middle" fill="var(--blue-800)" font-size="12" font-weight="500" font-family="inherit">dbt Core</text>
+        <text x="285" y="94" text-anchor="middle" fill="var(--blue-600)" font-size="10" font-family="inherit">Running on your machine</text>
+        <!-- Connection label -->
+        <rect x="390" y="62" width="140" height="36" rx="8" fill="var(--amber-50)" stroke="var(--amber-600)" stroke-width="0.5"/>
+        <text x="460" y="85" text-anchor="middle" fill="var(--amber-800)" font-size="11" font-weight="500" font-family="inherit">Your network connection</text>
+        <!-- Database -->
+        <rect x="560" y="56" width="100" height="48" rx="8" fill="var(--purple-50)" stroke="var(--purple-600)" stroke-width="0.5"/>
+        <text x="610" y="75" text-anchor="middle" fill="var(--purple-800)" font-size="12" font-weight="500" font-family="inherit">Database</text>
+        <text x="610" y="94" text-anchor="middle" fill="var(--purple-600)" font-size="10" font-family="inherit">Your data</text>
+        <!-- Arrows -->
+        <line x1="190" y1="80" x2="208" y2="80" stroke="var(--gray-600)" stroke-width="1.1" marker-end="url(#e1)"/>
+        <line x1="360" y1="80" x2="388" y2="80" stroke="var(--blue-600)" stroke-width="1.1" marker-end="url(#e1)"/>
+        <line x1="530" y1="80" x2="558" y2="80" stroke="var(--amber-600)" stroke-width="1.1" marker-end="url(#e1)"/>
+        <text x="340" y="140" text-anchor="middle" fill="var(--muted)" font-size="11" font-family="inherit">Your team controls everything, including how the connection is made.</text>
+      </svg>
+    </div>
+    <div class="callout"><strong>Simple version:</strong> dbt Core is like a recipe app you install on your own phone. The app developer does not control your Wi-Fi or what restaurant you order from. You own all of that.</div>
+    <div class="support-box">
+      <div class="support-box-title"><span class="dot" style="background:var(--gray-600)"></span>Getting help</div>
+      <div class="support-col-body" style="font-size:13px">No paid support from dbt Labs. Help comes from the dbt community through Slack, GitHub, and public documentation. Your team is responsible for keeping it running.</div>
     </div>
   </div>
 
-  <div class="nav-btns">
-    <button class="btn btn-sec" disabled>← Back</button>
-    <button class="btn btn-pri" onclick="go(1)">Next →</button>
-  </div>
-</div>
-
-<!-- ═══ PANEL 2: profiles.yml ═══ -->
-<div class="panel" id="panel-1">
-  <div class="hint self-only">
-    <span class="hint-icon">📄</span>
-    <div><strong>profiles.yml is your local connection file.</strong> It lives at <code>~/.dbt/profiles.yml</code> — outside your project directory — so credentials are never accidentally committed to git. Each profile has named outputs called <em>targets</em>, and <code>target:</code> sets the default.</div>
-  </div>
-  <div class="hint demo-only">
-    <span class="hint-icon">📄</span>
-    <div><strong>~/.dbt/profiles.yml</strong> — lives outside the project, never committed. Has named targets for dev and prod.</div>
-  </div>
-
-  <div class="code-wrap">
-    <div class="code-head"><span class="lbl" style="color:#58a6ff">~/.dbt/profiles.yml</span><span class="badge" style="background:rgba(88,166,255,.14);color:#58a6ff">YAML</span></div>
-    <div class="code-body"><pre><span class="hl"><span class="an an-b">my_project:                           # must match "profile:" in dbt_project.yml</span>
-  target: dev                         # which output is active by default</span>
-  outputs:
-
-<span class="gl">    dev:                              # personal development target</span>
-      type: snowflake
-      account: abc123.us-east-1
-      user: jane@company.com
-<span class="wl">      password: "{{ env_var('DBT_PASSWORD') }}"  <span class="an an-w"># never use a literal string here</span></span>
-      role: TRANSFORMER
-<span class="gl">      database: ANALYTICS_DEV         # isolated dev database</span>
-<span class="gl">      schema: dbt_jane                # per-developer schema</span>
-      warehouse: COMPUTE_WH
-      threads: 4
-
-<span class="pl">    prod:                             # production target</span>
-      type: snowflake
-      account: abc123.us-east-1
-<span class="pl">      user: dbt_service_account       # <span class="an an-p">machine identity, not a person</span></span>
-<span class="pl">      private_key_path: /secrets/snowflake_key.p8  <span class="an an-p">key-pair auth for prod</span></span>
-      role: TRANSFORMER_PROD
-<span class="pl">      database: ANALYTICS             # production database</span>
-<span class="pl">      schema: dbt_prod</span>
-      warehouse: COMPUTE_WH_LARGE
-      threads: 8</pre></div>
-  </div>
-
-  <div class="target-row self-only">
-    <div class="target-card" style="border:1px solid rgba(88,166,255,.3)">
-      <div class="tc-name" style="color:#58a6ff">target: dev</div>
-      <div class="tc-desc">Your personal sandbox. Writes to a dev database and your own schema. Uses your credentials.</div>
+  <div class="for-security">
+    <div class="summary">
+      <div class="metric"><div class="metric-label">Managed by dbt</div><div class="metric-value neutral">Nothing</div></div>
+      <div class="metric"><div class="metric-label">Internet traversal</div><div class="metric-value warn">Depends on host</div></div>
+      <div class="metric"><div class="metric-label">Connectivity</div><div class="metric-value good">Fully customer-controlled</div></div>
+      <div class="metric"><div class="metric-label">Support</div><div class="metric-value neutral">Community only</div></div>
     </div>
-    <div class="target-card" style="border:1px solid rgba(210,153,34,.3)">
-      <div class="tc-name" style="color:#d29922">target: ci</div>
-      <div class="tc-desc">Short-lived CI runs. Usually a service account with a throwaway schema that's dropped after tests pass.</div>
+    <p class="hint">Click any component to learn more.</p>
+    <div class="diagram-wrap">
+      <svg width="100%" viewBox="0 0 680 240">
+        <defs><marker id="a1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+        <text x="340" y="18" text-anchor="middle" fill="var(--muted)" font-size="11" font-family="inherit" font-weight="500">Where dbt Core runs (your choice)</text>
+        <g class="nc" onclick="explain('core','local')"><rect x="30" y="30" width="168" height="46" rx="7" fill="var(--gray-50)" stroke="var(--gray-600)" stroke-width="0.5"/><text x="114" y="48" text-anchor="middle" fill="var(--gray-800)" font-size="11" font-weight="500" font-family="inherit">Local machine</text><text x="114" y="65" text-anchor="middle" fill="var(--gray-600)" font-size="10" font-family="inherit">Developer workstation</text></g>
+        <g class="nc" onclick="explain('core','ci')"><rect x="256" y="30" width="168" height="46" rx="7" fill="var(--gray-50)" stroke="var(--gray-600)" stroke-width="0.5"/><text x="340" y="48" text-anchor="middle" fill="var(--gray-800)" font-size="11" font-weight="500" font-family="inherit">CI / CD pipeline</text><text x="340" y="65" text-anchor="middle" fill="var(--gray-600)" font-size="10" font-family="inherit">GitHub Actions, GitLab CI</text></g>
+        <g class="nc" onclick="explain('core','orch')"><rect x="482" y="30" width="168" height="46" rx="7" fill="var(--gray-50)" stroke="var(--gray-600)" stroke-width="0.5"/><text x="566" y="48" text-anchor="middle" fill="var(--gray-800)" font-size="11" font-weight="500" font-family="inherit">Orchestrator</text><text x="566" y="65" text-anchor="middle" fill="var(--gray-600)" font-size="10" font-family="inherit">Airflow, Prefect, Dagster</text></g>
+        <!-- All three converge to profiles.yml -->
+        <line x1="114" y1="76" x2="114" y2="100" stroke="var(--gray-600)" stroke-width="1.1"/>
+        <line x1="340" y1="76" x2="340" y2="100" stroke="var(--gray-600)" stroke-width="1.1"/>
+        <line x1="566" y1="76" x2="566" y2="100" stroke="var(--gray-600)" stroke-width="1.1"/>
+        <line x1="114" y1="100" x2="566" y2="100" stroke="var(--gray-600)" stroke-width="1.1"/>
+        <line x1="340" y1="100" x2="340" y2="110" stroke="var(--gray-600)" stroke-width="1.1" marker-end="url(#a1)"/>
+        <g class="nc" onclick="explain('core','profiles')"><rect x="190" y="110" width="300" height="42" rx="7" fill="var(--amber-50)" stroke="var(--amber-600)" stroke-width="0.5"/><text x="340" y="127" text-anchor="middle" fill="var(--amber-800)" font-size="11" font-weight="500" font-family="inherit">profiles.yml</text><text x="340" y="143" text-anchor="middle" fill="var(--amber-600)" font-size="10" font-family="inherit">Warehouse credentials and connection config</text></g>
+        <line x1="340" y1="152" x2="340" y2="168" stroke="var(--amber-600)" stroke-width="1.1" marker-end="url(#a1)"/>
+        <g class="nc" onclick="explain('core','wh')"><rect x="220" y="168" width="240" height="42" rx="7" fill="var(--purple-50)" stroke="var(--purple-600)" stroke-width="0.5"/><text x="340" y="185" text-anchor="middle" fill="var(--purple-800)" font-size="11" font-weight="500" font-family="inherit">Data platform</text><text x="340" y="201" text-anchor="middle" fill="var(--purple-600)" font-size="10" font-family="inherit">Snowflake, Databricks, BigQuery, Redshift</text></g>
+      </svg>
     </div>
-    <div class="target-card" style="border:1px solid rgba(210,168,255,.3)">
-      <div class="tc-name" style="color:#d2a8ff">target: prod</div>
-      <div class="tc-desc">Production runs via a locked-down service account. Writes to the canonical schema that downstream tools query.</div>
-    </div>
-  </div>
-
-  <div class="self-only">
-    <div class="code-wrap">
-      <div class="code-head"><span class="lbl" style="color:#8b949e">dbt_project.yml — linking the project to the profile</span></div>
-      <div class="code-body"><pre>name: my_project
-version: '1.0.0'
-<span class="hl"><span class="an an-b">profile: my_project   # must match the top-level key in profiles.yml</span></span>
-
-model-paths: ["models"]</pre></div>
-    </div>
-  </div>
-
-  <div class="nav-btns">
-    <button class="btn btn-sec" onclick="go(0)">← Back</button>
-    <button class="btn btn-pri" onclick="go(2)">Next →</button>
-  </div>
-</div>
-
-<!-- ═══ PANEL 3: Auth Methods ═══ -->
-<div class="panel" id="panel-2">
-  <div class="hint self-only">
-    <span class="hint-icon">🔐</span>
-    <div><strong>Authentication is how dbt proves identity to the warehouse.</strong> The right method depends on your platform and environment. Click each card to see its config.</div>
-  </div>
-  <div class="hint demo-only">
-    <span class="hint-icon">🔐</span>
-    <div><strong>Four auth methods.</strong> Click each to see the config and when to use it.</div>
-  </div>
-
-  <div class="auth-grid">
-    <div class="auth-card selected" id="auth-0" onclick="selectAuth(0)">
-      <div class="auth-title">Username + Password</div>
-      <div class="auth-sub self-only">Simplest setup. Fine for local dev, not recommended for production.</div>
-      <div class="auth-platforms">
-        <span class="auth-pill">Snowflake</span>
-        <span class="auth-pill">Redshift</span>
-        <span class="auth-pill">Databricks</span>
+    <div id="explain-core" class="explain-box"><div class="explain-title" id="explain-core-title"></div><div class="explain-body" id="explain-core-body"></div></div>
+    <div class="support-box">
+      <div class="support-box-title"><span class="dot" style="background:var(--gray-600)"></span>Setup and support</div>
+      <div class="support-row">
+        <div class="support-col"><div class="support-col-label">Setup</div><div class="support-col-body">Configure profiles.yml with warehouse credentials. Network path depends on where Core runs. No dbt-managed infrastructure in the path.</div></div>
+        <div class="support-col"><div class="support-col-label">Support</div><div class="support-col-body">Community only. dbt Slack, GitHub Issues, docs.getdbt.com. No SLA. Your team owns the full stack.</div></div>
       </div>
     </div>
-    <div class="auth-card" id="auth-1" onclick="selectAuth(1)">
-      <div class="auth-title">Key-Pair Authentication</div>
-      <div class="auth-sub self-only">Private key instead of password. The standard for production Snowflake service accounts.</div>
-      <div class="auth-platforms">
-        <span class="auth-pill">Snowflake</span>
-      </div>
-    </div>
-    <div class="auth-card" id="auth-2" onclick="selectAuth(2)">
-      <div class="auth-title">OAuth / SSO</div>
-      <div class="auth-sub self-only">Token-based auth via your identity provider. No passwords in config files at all.</div>
-      <div class="auth-platforms">
-        <span class="auth-pill">Snowflake</span>
-        <span class="auth-pill">BigQuery</span>
-        <span class="auth-pill">Databricks</span>
-      </div>
-    </div>
-    <div class="auth-card" id="auth-3" onclick="selectAuth(3)">
-      <div class="auth-title">Service Account / Token</div>
-      <div class="auth-sub self-only">Machine identity for CI/CD and production. JSON key file (BigQuery) or personal access token (Databricks).</div>
-      <div class="auth-platforms">
-        <span class="auth-pill">BigQuery</span>
-        <span class="auth-pill">Databricks</span>
-      </div>
-    </div>
-  </div>
-
-  <div class="auth-detail show" id="detail-0">
-    <div class="code-wrap">
-      <div class="code-head"><span class="lbl" style="color:#8b949e">Username + Password</span><span class="badge" style="background:rgba(248,81,73,.14);color:#f85149">avoid in prod</span></div>
-      <div class="code-body"><pre>  type: snowflake
-  user: jane@company.com
-<span class="wl">  password: "{{ env_var('DBT_PASSWORD') }}"   <span class="an an-w"># always use env_var, never a literal</span></span>
-  account: abc123.us-east-1
-  role: TRANSFORMER</pre></div>
-    </div>
-    <div class="callout callout-warn self-only">⚠️ Password auth can't enforce MFA at the service account level and is harder to rotate. Reserve it for local dev only — use key-pair or OAuth for any shared or automated environment.</div>
-  </div>
-
-  <div class="auth-detail" id="detail-1">
-    <div class="code-wrap">
-      <div class="code-head"><span class="lbl" style="color:#3fb950">Key-Pair Authentication</span><span class="badge" style="background:rgba(63,185,80,.14);color:#3fb950">recommended for prod</span></div>
-      <div class="code-body"><pre>  type: snowflake
-  user: dbt_service_account
-<span class="gl">  private_key_path: /secrets/snowflake_rsa_key.p8   <span class="an an-g"># path to the private key</span></span>
-<span class="gl">  private_key_passphrase: "{{ env_var('DBT_KEY_PASSPHRASE') }}"  <span class="an an-g"># if key is encrypted</span></span>
-  account: abc123.us-east-1
-  role: TRANSFORMER_PROD</pre></div>
-    </div>
-    <div class="callout callout-good self-only">✓ Generate a key pair with <code>openssl genrsa</code>, attach the public key to the Snowflake user via <code>ALTER USER ... SET RSA_PUBLIC_KEY='...'</code>, and store the private key in a secrets manager. dbt Cloud handles this securely in its Connections UI.</div>
-  </div>
-
-  <div class="auth-detail" id="detail-2">
-    <div class="code-wrap">
-      <div class="code-head"><span class="lbl" style="color:#58a6ff">OAuth / SSO</span><span class="badge" style="background:rgba(88,166,255,.14);color:#58a6ff">token-based</span></div>
-      <div class="code-body"><pre><span class="hl"><span class="an an-b"># Snowflake — external OAuth or Snowflake OAuth</span></span>
-  type: snowflake
-  authenticator: oauth
-  token: "{{ env_var('DBT_OAUTH_TOKEN') }}"
-  account: abc123.us-east-1
-
-<span class="hl"><span class="an an-b"># BigQuery — Application Default Credentials (ADC)</span></span>
-  type: bigquery
-  method: oauth
-  project: my-gcp-project
-<span class="gl">  # one-time local setup: gcloud auth application-default login</span>
-<span class="gl">  # after that, ADC handles token refresh automatically</span></pre></div>
-    </div>
-  </div>
-
-  <div class="auth-detail" id="detail-3">
-    <div class="code-wrap">
-      <div class="code-head"><span class="lbl" style="color:#d2a8ff">Service Account / Token</span><span class="badge" style="background:rgba(210,168,255,.14);color:#d2a8ff">for CI/CD &amp; prod</span></div>
-      <div class="code-body"><pre><span class="hl"><span class="an an-b"># BigQuery — service account JSON keyfile</span></span>
-  type: bigquery
-  method: service-account
-  project: my-gcp-project
-<span class="pl">  keyfile: /secrets/bq-service-account.json    <span class="an an-p"># path to the JSON key</span></span>
-  dataset: dbt_prod
-
-<span class="hl"><span class="an an-b"># Databricks — personal access token (PAT)</span></span>
-  type: databricks
-  host: abc-123.cloud.databricks.com
-  http_path: /sql/1.0/warehouses/abc123
-<span class="pl">  token: "{{ env_var('DBT_DATABRICKS_TOKEN') }}"  <span class="an an-p"># generate in Databricks UI under User Settings</span></span></pre></div>
-    </div>
-  </div>
-
-  <div class="nav-btns">
-    <button class="btn btn-sec" onclick="go(1)">← Back</button>
-    <button class="btn btn-pri" onclick="go(3)">Next →</button>
+    <div class="callout"><strong>Key point:</strong> dbt Labs manages nothing in the connection path. Run it in a private subnet and the connection stays private. Run it on a laptop and it goes over the internet. Full flexibility, full responsibility.</div>
   </div>
 </div>
 
-<!-- ═══ PANEL 4: Platform Adapters ═══ -->
-<div class="panel" id="panel-3">
-  <div class="hint self-only">
-    <span class="hint-icon">🔌</span>
-    <div><strong>Each platform has its own adapter and its own connection fields.</strong> Install the adapter for your warehouse (<code>pip install dbt-snowflake</code>, etc.) alongside dbt Core. The profiles.yml structure is the same, but the fields inside each target differ.</div>
-  </div>
-  <div class="hint demo-only">
-    <span class="hint-icon">🔌</span>
-    <div><strong>Same profiles.yml structure, different fields per platform.</strong> Install the right adapter and configure accordingly.</div>
-  </div>
-
-  <div class="platform-grid">
-    <div class="platform-card sf">
-      <div class="platform-head"><span class="platform-name">Snowflake</span><span class="platform-tag">dbt-snowflake</span></div>
-      <div class="platform-body"><pre>type: snowflake
-account: abc123.us-east-1
-user: jane@company.com
-password: "{{ env_var('...') }}"
-role: TRANSFORMER
-database: ANALYTICS_DEV
-schema: dbt_jane
-warehouse: COMPUTE_WH
-threads: 4</pre></div>
+<!-- ==================== MULTI-TENANT ==================== -->
+<div id="tab-multi" class="panel">
+  <div class="for-everyone">
+    <p style="font-size:13px;color:var(--muted);margin-bottom:14px">The dbt Platform is a hosted service run by dbt Labs. Your team logs in, sets up your data work, and dbt Labs handles the servers. You share that infrastructure with other dbt customers, like sharing a building with other companies, each in their own locked office.</p>
+    <div class="diagram-wrap">
+      <svg width="100%" viewBox="0 0 680 160">
+        <defs><marker id="e2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+        <rect x="30" y="56" width="140" height="48" rx="8" fill="var(--blue-50)" stroke="var(--blue-600)" stroke-width="0.5"/>
+        <text x="100" y="75" text-anchor="middle" fill="var(--blue-800)" font-size="12" font-weight="500" font-family="inherit">dbt Platform</text>
+        <text x="100" y="94" text-anchor="middle" fill="var(--blue-600)" font-size="10" font-family="inherit">Managed by dbt Labs</text>
+        <rect x="210" y="56" width="180" height="48" rx="8" fill="var(--coral-50)" stroke="var(--coral-600)" stroke-width="0.5" stroke-dasharray="5 3"/>
+        <text x="300" y="75" text-anchor="middle" fill="var(--coral-800)" font-size="12" font-weight="500" font-family="inherit">The internet</text>
+        <text x="300" y="94" text-anchor="middle" fill="var(--coral-600)" font-size="10" font-family="inherit">Encrypted, but public</text>
+        <rect x="430" y="56" width="120" height="48" rx="8" fill="var(--amber-50)" stroke="var(--amber-600)" stroke-width="0.5"/>
+        <text x="490" y="75" text-anchor="middle" fill="var(--amber-800)" font-size="12" font-weight="500" font-family="inherit">Your firewall</text>
+        <text x="490" y="94" text-anchor="middle" fill="var(--amber-600)" font-size="10" font-family="inherit">Must allow dbt in</text>
+        <rect x="580" y="56" width="80" height="48" rx="8" fill="var(--purple-50)" stroke="var(--purple-600)" stroke-width="0.5"/>
+        <text x="620" y="75" text-anchor="middle" fill="var(--purple-800)" font-size="12" font-weight="500" font-family="inherit">Database</text>
+        <text x="620" y="94" text-anchor="middle" fill="var(--purple-600)" font-size="10" font-family="inherit">Your data</text>
+        <line x1="170" y1="80" x2="208" y2="80" stroke="var(--blue-600)" stroke-width="1.1" marker-end="url(#e2)"/>
+        <line x1="390" y1="80" x2="428" y2="80" stroke="var(--coral-600)" stroke-width="1.1" marker-end="url(#e2)"/>
+        <line x1="550" y1="80" x2="578" y2="80" stroke="var(--amber-600)" stroke-width="1.1" marker-end="url(#e2)"/>
+        <text x="340" y="140" text-anchor="middle" fill="var(--coral-600)" font-size="11" font-weight="500" font-family="inherit">Data travels over the internet. Encrypted, but public. Your IT team must allow dbt's addresses through.</text>
+      </svg>
     </div>
-    <div class="platform-card bq">
-      <div class="platform-head"><span class="platform-name">BigQuery</span><span class="platform-tag">dbt-bigquery</span></div>
-      <div class="platform-body"><pre>type: bigquery
-method: oauth
-project: my-gcp-project
-dataset: dbt_jane
-threads: 4
-timeout_seconds: 300
-location: US
-priority: interactive</pre></div>
-    </div>
-    <div class="platform-card db">
-      <div class="platform-head"><span class="platform-name">Databricks</span><span class="platform-tag">dbt-databricks</span></div>
-      <div class="platform-body"><pre>type: databricks
-host: abc-123.cloud.databricks.com
-http_path: /sql/1.0/warehouses/xyz
-token: "{{ env_var('...') }}"
-catalog: main
-schema: dbt_jane
-threads: 4</pre></div>
-    </div>
-    <div class="platform-card rs">
-      <div class="platform-head"><span class="platform-name">Redshift</span><span class="platform-tag">dbt-redshift</span></div>
-      <div class="platform-body"><pre>type: redshift
-host: abc.us-east-1.redshift.amazonaws.com
-port: 5439
-user: dbt_user
-password: "{{ env_var('...') }}"
-dbname: analytics
-schema: dbt_jane
-threads: 4</pre></div>
+    <div class="callout"><strong>Is this secure?</strong> Yes, for most companies. The connection is encrypted and your database still requires a login. Some industries (banking, healthcare) may require a fully private connection that never touches the internet. See the "Private connections" tab for that.</div>
+    <div class="support-box">
+      <div class="support-box-title"><span class="dot" style="background:var(--blue-600)"></span>Getting help</div>
+      <div class="support-col-body" style="font-size:13px">dbt Labs support handles platform questions. Your IT team manages the firewall rules. If dbt changes their server addresses, they notify you and your team updates the firewall.</div>
     </div>
   </div>
-
-  <div class="self-only">
-    <div class="callout callout-good">
-      Key differences: Snowflake uses <code>account</code> + <code>database</code> + <code>schema</code>. BigQuery uses <code>project</code> + <code>dataset</code> (no separate database concept). Databricks uses <code>host</code> + <code>http_path</code> + <code>catalog</code>. Redshift uses a <code>host</code> hostname like a Postgres connection.
+  <div class="for-security">
+    <div class="summary">
+      <div class="metric"><div class="metric-label">Internet traversal</div><div class="metric-value bad">Yes (default)</div></div>
+      <div class="metric"><div class="metric-label">Setup complexity</div><div class="metric-value good">Low</div></div>
+      <div class="metric"><div class="metric-label">IP allowlisting</div><div class="metric-value warn">Required</div></div>
+      <div class="metric"><div class="metric-label">Dedicated compute</div><div class="metric-value neutral">No, shared</div></div>
     </div>
-  </div>
-
-  <div class="nav-btns">
-    <button class="btn btn-sec" onclick="go(2)">← Back</button>
-    <button class="btn btn-pri" onclick="go(4)">Next →</button>
+    <p class="hint">Click any component to learn more.</p>
+    <div class="diagram-wrap">
+      <svg width="100%" viewBox="0 0 680 250">
+        <defs><marker id="a2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+        <rect x="20" y="20" width="210" height="138" rx="11" fill="var(--blue-50)" stroke="var(--blue-600)" stroke-width="0.5"/>
+        <text x="125" y="38" text-anchor="middle" fill="var(--blue-800)" font-size="11" font-weight="500" font-family="inherit">dbt Platform, shared AWS account</text>
+        <text x="125" y="52" text-anchor="middle" fill="var(--blue-600)" font-size="10" font-family="inherit">Managed by dbt Labs</text>
+        <g class="nc" onclick="explain('multi','runtime')"><rect x="34" y="60" width="182" height="40" rx="6" fill="var(--blue-100)" stroke="var(--blue-600)" stroke-width="0.5"/><text x="125" y="76" text-anchor="middle" fill="var(--blue-800)" font-size="11" font-weight="500" font-family="inherit">Shared execution runtime</text><text x="125" y="92" text-anchor="middle" fill="var(--blue-600)" font-size="10" font-family="inherit">Multi-customer, tenant-isolated</text></g>
+        <g class="nc" onclick="explain('multi','nat')"><rect x="34" y="110" width="182" height="34" rx="6" fill="var(--blue-50)" stroke="var(--blue-600)" stroke-width="0.5"/><text x="125" y="131" text-anchor="middle" fill="var(--blue-800)" font-size="11" font-weight="500" font-family="inherit">Published NAT IPs (static list)</text></g>
+        <g class="nc" onclick="explain('multi','internet')"><rect x="256" y="48" width="132" height="66" rx="9" fill="var(--coral-50)" stroke="var(--coral-600)" stroke-width="0.5" stroke-dasharray="5 3"/><text x="322" y="76" text-anchor="middle" fill="var(--coral-800)" font-size="11" font-weight="500" font-family="inherit">Public internet</text><text x="322" y="91" text-anchor="middle" fill="var(--coral-600)" font-size="10" font-family="inherit">TLS encrypted</text></g>
+        <g class="nc" onclick="explain('multi','fw')"><rect x="412" y="60" width="96" height="42" rx="7" fill="var(--amber-50)" stroke="var(--amber-600)" stroke-width="0.5"/><text x="460" y="76" text-anchor="middle" fill="var(--amber-800)" font-size="11" font-weight="500" font-family="inherit">Firewall</text><text x="460" y="92" text-anchor="middle" fill="var(--amber-600)" font-size="10" font-family="inherit">IP allowlist</text></g>
+        <g class="nc" onclick="explain('multi','wh')"><rect x="526" y="60" width="124" height="42" rx="7" fill="var(--purple-50)" stroke="var(--purple-600)" stroke-width="0.5"/><text x="588" y="76" text-anchor="middle" fill="var(--purple-800)" font-size="11" font-weight="500" font-family="inherit">Data platform</text><text x="588" y="92" text-anchor="middle" fill="var(--purple-600)" font-size="10" font-family="inherit">Public endpoint</text></g>
+        <line x1="230" y1="81" x2="254" y2="81" stroke="var(--blue-600)" stroke-width="1.1" marker-end="url(#a2)"/>
+        <line x1="388" y1="81" x2="410" y2="81" stroke="var(--coral-600)" stroke-width="1.1" marker-end="url(#a2)"/>
+        <line x1="508" y1="81" x2="524" y2="81" stroke="var(--amber-600)" stroke-width="1.1" marker-end="url(#a2)"/>
+        <text x="340" y="185" text-anchor="middle" fill="var(--muted)" font-size="11" font-family="inherit">Traffic crosses the public internet to reach your warehouse.</text>
+        <text x="340" y="201" text-anchor="middle" fill="var(--coral-600)" font-size="11" font-weight="500" font-family="inherit">Warehouse needs a public endpoint and NAT IP allowlisting.</text>
+        <text x="340" y="221" text-anchor="middle" fill="var(--muted)" font-size="11" font-family="inherit">Add PrivateLink or VPC peering to remove the public internet hop.</text>
+      </svg>
+    </div>
+    <div id="explain-multi" class="explain-box"><div class="explain-title" id="explain-multi-title"></div><div class="explain-body" id="explain-multi-body"></div></div>
+    <div class="support-box">
+      <div class="support-box-title"><span class="dot" style="background:var(--blue-600)"></span>Setup and support</div>
+      <div class="support-row">
+        <div class="support-col"><div class="support-col-label">Setup</div><div class="support-col-body">Add warehouse credentials in the UI and allowlist dbt's NAT IPs in your firewall. Lowest setup effort of any model.</div></div>
+        <div class="support-col"><div class="support-col-label">Support</div><div class="support-col-body">dbt Labs support handles the platform. Your team manages firewall allowlist updates when NAT IPs change.</div></div>
+      </div>
+    </div>
+    <div class="callout"><strong>Multi-tenant is where most teams start.</strong> The tradeoff is shared compute (logically isolated) and a default connection over the public internet. Add PrivateLink to get private connectivity without changing your deployment tier.</div>
   </div>
 </div>
 
-<!-- ═══ PANEL 5: dbt Cloud ═══ -->
-<div class="panel" id="panel-4">
-  <div class="hint self-only">
-    <span class="hint-icon">☁️</span>
-    <div><strong>dbt Cloud replaces profiles.yml with a UI-based connection model.</strong> Credentials are stored encrypted — never on disk. Each environment (development, production) gets its own connection config, and developer credentials are set per-user in their Profile settings.</div>
-  </div>
-  <div class="hint demo-only">
-    <span class="hint-icon">☁️</span>
-    <div><strong>No profiles.yml in dbt Cloud.</strong> Connections live in the UI. Dev and prod use the same platform config but different credentials.</div>
-  </div>
-
-  <div class="compare-row">
-    <div class="compare-block core">
-      <h4>dbt Core (local)</h4>
-      <div class="check-row"><span class="ci">📄</span><div>Connection lives in <strong>~/.dbt/profiles.yml</strong> on your machine</div></div>
-      <div class="check-row"><span class="ci">🔑</span><div>You manage secrets via <strong>env vars or a secrets manager</strong></div></div>
-      <div class="check-row"><span class="ci">👤</span><div>Each developer configures their <strong>own local profile</strong></div></div>
-      <div class="check-row"><span class="ci">⚙️</span><div>Production runs via CI/CD, passing env vars at job runtime</div></div>
+<!-- ==================== SINGLE-TENANT ==================== -->
+<div id="tab-single" class="panel">
+  <div class="for-everyone">
+    <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Same dbt Platform, but your company gets its own private copy. Only your company's work runs on it. This is common in banking, insurance, and healthcare, where rules may require that systems are not shared with other organizations.</p>
+    <div class="diagram-wrap">
+      <svg width="100%" viewBox="0 0 680 160">
+        <defs><marker id="e3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+        <rect x="30" y="44" width="160" height="60" rx="8" fill="var(--blue-50)" stroke="var(--blue-600)" stroke-width="0.5"/>
+        <text x="110" y="67" text-anchor="middle" fill="var(--blue-800)" font-size="12" font-weight="500" font-family="inherit">Your dbt Platform</text>
+        <text x="110" y="83" text-anchor="middle" fill="var(--blue-600)" font-size="10" font-family="inherit">Dedicated, yours only</text>
+        <text x="110" y="98" text-anchor="middle" fill="var(--blue-600)" font-size="10" font-family="inherit">Managed by dbt Labs</text>
+        <!-- Two path arrows -->
+        <line x1="190" y1="66" x2="238" y2="54" stroke="var(--green-600)" stroke-width="1.1" marker-end="url(#e3)"/>
+        <line x1="190" y1="94" x2="238" y2="106" stroke="var(--coral-600)" stroke-width="1.1" stroke-dasharray="4 3" marker-end="url(#e3)"/>
+        <!-- Private path -->
+        <rect x="240" y="36" width="150" height="36" rx="8" fill="var(--green-50)" stroke="var(--green-600)" stroke-width="0.5"/>
+        <text x="315" y="54" text-anchor="middle" fill="var(--green-800)" font-size="11" font-weight="500" font-family="inherit">Private tunnel (recommended)</text>
+        <!-- Public path -->
+        <rect x="240" y="88" width="150" height="36" rx="8" fill="var(--coral-50)" stroke="var(--coral-600)" stroke-width="0.5" stroke-dasharray="4 3"/>
+        <text x="315" y="106" text-anchor="middle" fill="var(--coral-800)" font-size="11" font-weight="500" font-family="inherit">Internet (fallback)</text>
+        <!-- Both to database -->
+        <line x1="390" y1="54" x2="438" y2="74" stroke="var(--green-600)" stroke-width="1.1" marker-end="url(#e3)"/>
+        <line x1="390" y1="106" x2="438" y2="86" stroke="var(--coral-600)" stroke-width="1.1" stroke-dasharray="4 3" marker-end="url(#e3)"/>
+        <rect x="440" y="56" width="100" height="48" rx="8" fill="var(--purple-50)" stroke="var(--purple-600)" stroke-width="0.5"/>
+        <text x="490" y="75" text-anchor="middle" fill="var(--purple-800)" font-size="12" font-weight="500" font-family="inherit">Database</text>
+        <text x="490" y="94" text-anchor="middle" fill="var(--purple-600)" font-size="10" font-family="inherit">Your data</text>
+        <text x="340" y="148" text-anchor="middle" fill="var(--muted)" font-size="11" font-family="inherit">Because this is your own instance, setting up the private tunnel is simpler and more predictable.</text>
+      </svg>
     </div>
-    <div class="compare-block cloud">
-      <h4>dbt Cloud</h4>
-      <div class="check-row"><span class="ci">🖥️</span><div>Connection configured in <strong>Project → Connections</strong> in the UI</div></div>
-      <div class="check-row"><span class="ci">🔒</span><div>Credentials stored <strong>encrypted in dbt Cloud</strong> — never written to disk</div></div>
-      <div class="check-row"><span class="ci">👥</span><div><strong>Per-developer credentials</strong> set in each user's Profile settings</div></div>
-      <div class="check-row"><span class="ci">🚀</span><div>Production credentials attached to the <strong>deployment environment</strong> — not the project</div></div>
+    <div class="callout"><strong>Do I need this?</strong> Not always. Most companies do fine with the shared service. Single-tenant is typically chosen when a compliance or legal team specifically requires it, or when your security team wants a simpler story for an audit or leadership review.</div>
+    <div class="support-box">
+      <div class="support-box-title"><span class="dot" style="background:var(--blue-600)"></span>Getting help</div>
+      <div class="support-col-body" style="font-size:13px">dbt Labs provides a dedicated support tier and an account team. They are typically involved from the beginning of setup.</div>
     </div>
   </div>
-
-  <div class="code-wrap">
-    <div class="code-head"><span class="lbl" style="color:#3fb950">dbt Cloud environment model</span></div>
-    <div class="code-body"><pre><span class="gl">Development Environment</span>
-  Connection:  Snowflake (shared — account, role, warehouse)
-<span class="gl">  Credentials: per-developer OAuth or username/password (set in Profile → Credentials)</span>
-  Schema:      dbt_&lt;username&gt;   ← automatically namespaced per developer
-
-<span class="pl">Deployment Environment (Production)</span>
-  Connection:  Snowflake (same shared config)
-<span class="pl">  Credentials: service account key-pair (set in Environment → Connection settings)</span>
-  Schema:      dbt_prod
-
-<span class="hl">Both environments share the same Connection object (host / account / warehouse / role).</span>
-<span class="hl">What differs: who is authenticating, and where models are written.</span></pre></div>
-  </div>
-
-  <div class="nav-btns">
-    <button class="btn btn-sec" onclick="go(3)">← Back</button>
-    <button class="btn btn-pri" onclick="go(5)">Next →</button>
+  <div class="for-security">
+    <div class="summary">
+      <div class="metric"><div class="metric-label">Internet traversal</div><div class="metric-value good">Optional</div></div>
+      <div class="metric"><div class="metric-label">Dedicated AWS account</div><div class="metric-value good">Yes</div></div>
+      <div class="metric"><div class="metric-label">IP allowlisting</div><div class="metric-value good">No (with PL)</div></div>
+      <div class="metric"><div class="metric-label">Setup complexity</div><div class="metric-value warn">Medium</div></div>
+    </div>
+    <p class="hint">Click any component to learn more.</p>
+    <div class="diagram-wrap">
+      <svg width="100%" viewBox="0 0 680 300">
+        <defs><marker id="a3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+        <rect x="20" y="20" width="210" height="158" rx="11" fill="var(--blue-50)" stroke="var(--blue-600)" stroke-width="0.5"/>
+        <text x="125" y="38" text-anchor="middle" fill="var(--blue-800)" font-size="11" font-weight="500" font-family="inherit">dbt Platform, dedicated AWS account</text>
+        <text x="125" y="52" text-anchor="middle" fill="var(--blue-600)" font-size="10" font-family="inherit">Managed by dbt Labs, yours only</text>
+        <g class="nc" onclick="explain('single','runtime')"><rect x="34" y="60" width="182" height="40" rx="6" fill="var(--blue-100)" stroke="var(--blue-600)" stroke-width="0.5"/><text x="125" y="76" text-anchor="middle" fill="var(--blue-800)" font-size="11" font-weight="500" font-family="inherit">Dedicated execution runtime</text><text x="125" y="92" text-anchor="middle" fill="var(--blue-600)" font-size="10" font-family="inherit">No shared compute</text></g>
+        <g class="nc" onclick="explain('single','vpc')"><rect x="34" y="110" width="182" height="40" rx="6" fill="var(--blue-50)" stroke="var(--blue-600)" stroke-width="0.5"/><text x="125" y="126" text-anchor="middle" fill="var(--blue-800)" font-size="11" font-weight="500" font-family="inherit">Dedicated VPC</text><text x="125" y="142" text-anchor="middle" fill="var(--blue-600)" font-size="10" font-family="inherit">Known CIDR, your region</text></g>
+        <g class="nc" onclick="explain('single','pl')"><rect x="258" y="56" width="144" height="40" rx="7" fill="var(--green-50)" stroke="var(--green-600)" stroke-width="0.5"/><text x="330" y="72" text-anchor="middle" fill="var(--green-800)" font-size="11" font-weight="500" font-family="inherit">AWS backbone</text><text x="330" y="88" text-anchor="middle" fill="var(--green-600)" font-size="10" font-family="inherit">PrivateLink, recommended</text></g>
+        <g class="nc" onclick="explain('single','pub')"><rect x="258" y="110" width="144" height="40" rx="7" fill="var(--coral-50)" stroke="var(--coral-600)" stroke-width="0.5" stroke-dasharray="4 3"/><text x="330" y="126" text-anchor="middle" fill="var(--coral-800)" font-size="11" font-weight="500" font-family="inherit">Public internet</text><text x="330" y="142" text-anchor="middle" fill="var(--coral-600)" font-size="10" font-family="inherit">Fallback if no PrivateLink</text></g>
+        <text x="246" y="100" text-anchor="middle" fill="var(--muted)" font-size="10" font-family="inherit">or</text>
+        <rect x="428" y="20" width="230" height="234" rx="11" fill="var(--teal-50)" stroke="var(--teal-600)" stroke-width="0.5"/>
+        <text x="543" y="38" text-anchor="middle" fill="var(--teal-800)" font-size="11" font-weight="500" font-family="inherit">Your AWS account</text>
+        <g class="nc" onclick="explain('single','svc')"><rect x="442" y="50" width="202" height="40" rx="6" fill="var(--teal-100)" stroke="var(--teal-600)" stroke-width="0.5"/><text x="543" y="66" text-anchor="middle" fill="var(--teal-800)" font-size="11" font-weight="500" font-family="inherit">VPC endpoint service</text><text x="543" y="82" text-anchor="middle" fill="var(--teal-600)" font-size="10" font-family="inherit">PrivateLink producer</text></g>
+        <g class="nc" onclick="explain('single','nlb')"><rect x="442" y="102" width="202" height="40" rx="6" fill="var(--amber-50)" stroke="var(--amber-600)" stroke-width="0.5"/><text x="543" y="118" text-anchor="middle" fill="var(--amber-800)" font-size="11" font-weight="500" font-family="inherit">Network load balancer</text><text x="543" y="134" text-anchor="middle" fill="var(--amber-600)" font-size="10" font-family="inherit">Internal, no public IP</text></g>
+        <g class="nc" onclick="explain('single','fw')"><rect x="442" y="154" width="94" height="40" rx="6" fill="var(--coral-50)" stroke="var(--coral-600)" stroke-width="0.5"/><text x="489" y="170" text-anchor="middle" fill="var(--coral-800)" font-size="11" font-weight="500" font-family="inherit">Firewall</text><text x="489" y="186" text-anchor="middle" fill="var(--coral-600)" font-size="10" font-family="inherit">CISO controls</text></g>
+        <g class="nc" onclick="explain('single','wh')"><rect x="548" y="154" width="96" height="40" rx="6" fill="var(--purple-50)" stroke="var(--purple-600)" stroke-width="0.5"/><text x="596" y="170" text-anchor="middle" fill="var(--purple-800)" font-size="11" font-weight="500" font-family="inherit">Data platform</text><text x="596" y="186" text-anchor="middle" fill="var(--purple-600)" font-size="10" font-family="inherit">Private endpoint</text></g>
+        <line x1="230" y1="76" x2="256" y2="76" stroke="var(--blue-600)" stroke-width="1.1" marker-end="url(#a3)"/>
+        <line x1="230" y1="130" x2="256" y2="130" stroke="var(--blue-600)" stroke-width="1.1" stroke-dasharray="4 3" marker-end="url(#a3)"/>
+        <line x1="402" y1="76" x2="426" y2="68" stroke="var(--green-600)" stroke-width="1.1" marker-end="url(#a3)"/>
+        <line x1="402" y1="130" x2="426" y2="130" stroke="var(--coral-600)" stroke-width="1.1" stroke-dasharray="4 3" marker-end="url(#a3)"/>
+        <line x1="543" y1="90" x2="543" y2="100" stroke="var(--teal-600)" stroke-width="1.1" marker-end="url(#a3)"/>
+        <line x1="543" y1="142" x2="543" y2="152" stroke="var(--amber-600)" stroke-width="1.1" marker-end="url(#a3)"/>
+        <line x1="536" y1="174" x2="546" y2="174" stroke="var(--coral-600)" stroke-width="1.1" marker-end="url(#a3)"/>
+        <text x="340" y="274" text-anchor="middle" fill="var(--green-600)" font-size="11" font-weight="500" font-family="inherit">Known account ID and stable CIDR make PrivateLink setup simpler than multi-tenant.</text>
+      </svg>
+    </div>
+    <div id="explain-single" class="explain-box"><div class="explain-title" id="explain-single-title"></div><div class="explain-body" id="explain-single-body"></div></div>
+    <div class="support-box">
+      <div class="support-box-title"><span class="dot" style="background:var(--blue-600)"></span>Setup and support</div>
+      <div class="support-row">
+        <div class="support-col"><div class="support-col-label">Setup</div><div class="support-col-body">Same steps as multi-tenant, with a stable dedicated account. Your security team can validate the exact AWS account ID before accepting any connection.</div></div>
+        <div class="support-col"><div class="support-col-label">Support</div><div class="support-col-body">Dedicated support tier. Account team and field engineering are typically involved from the start.</div></div>
+      </div>
+    </div>
+    <div class="callout"><strong>Single-tenant vs multi-tenant:</strong> The runtime lives in a dedicated AWS account with no shared compute. Compliance conversations are simpler and CIDR ranges are predictable.</div>
   </div>
 </div>
 
-<!-- ═══ PANEL 6: Best Practices ═══ -->
-<div class="panel" id="panel-5">
-  <div class="hint self-only">
-    <span class="hint-icon">✅</span>
-    <div><strong>A few rules that prevent credential disasters and environment bleed.</strong></div>
-  </div>
-  <div class="hint demo-only">
-    <span class="hint-icon">✅</span>
-    <div><strong>The connection rules that matter most in practice.</strong></div>
-  </div>
+<!-- ==================== PRIVATE CONNECTIONS ==================== -->
+<div id="tab-pl" class="panel">
 
-  <div class="bp-list">
-    <div class="bp-item warn">
-      <div class="bp-icon">🚫</div>
-      <div>
-        <div class="bp-title">Never commit credentials to git</div>
-        <div class="bp-desc self-only">profiles.yml lives at <code>~/.dbt/</code>, outside your project root, for exactly this reason. If you use a <code>.env</code> file for local variables, add it to <code>.gitignore</code> before anything else.</div>
+  <div class="for-everyone">
+    <p style="font-size:13px;color:var(--muted);margin-bottom:14px">A private connection means data never travels over the public internet at all. Instead it goes through a locked private tunnel between dbt and your database. Select an option below to see how each one works.</p>
+    <div class="pl-selector">
+      <div class="pl-opt selected" id="eo-opt-native" onclick="selectPL('native','everyone')">
+        <div class="pl-opt-tag" style="background:var(--green-50);color:var(--green-800)">Least setup</div>
+        <div class="pl-opt-title">Your database handles it</div>
+        <div class="pl-opt-body">Your database tool already has a private connection option built in. You just turn it on.</div>
+      </div>
+      <div class="pl-opt" id="eo-opt-dbt" onclick="selectPL('dbt','everyone')">
+        <div class="pl-opt-tag" style="background:var(--blue-50);color:var(--blue-800)">Shared setup</div>
+        <div class="pl-opt-title">dbt builds their side</div>
+        <div class="pl-opt-body">dbt Labs sets up the tunnel on their end and sends a request. Your team approves it.</div>
+      </div>
+      <div class="pl-opt" id="eo-opt-customer" onclick="selectPL('customer','everyone')">
+        <div class="pl-opt-tag" style="background:var(--purple-50);color:var(--purple-800)">Most control</div>
+        <div class="pl-opt-title">Your team builds the tunnel</div>
+        <div class="pl-opt-body">Your infrastructure team builds the private tunnel entry point. Most setup, most control.</div>
       </div>
     </div>
-    <div class="bp-item good">
-      <div class="bp-icon">✅</div>
-      <div>
-        <div class="bp-title">Use env_var() for every secret</div>
-        <div class="bp-desc self-only">Wrap all secrets in <code>{{ env_var('VAR_NAME') }}</code>. dbt throws a clear error if the variable is missing — better than silently using a wrong or empty value.</div>
-      </div>
+    <div class="diagram-wrap" id="eo-pl-diagram">
+      <!-- Rendered by JS -->
     </div>
-    <div class="bp-item good">
-      <div class="bp-icon">✅</div>
-      <div>
-        <div class="bp-title">Give each developer their own schema</div>
-        <div class="bp-desc self-only">Set <code>schema: dbt_{{ env_var('DBT_USER') }}</code> in your dev target. This prevents developers from overwriting each other's models during active development.</div>
-      </div>
-    </div>
-    <div class="bp-item good">
-      <div class="bp-icon">✅</div>
-      <div>
-        <div class="bp-title">Use key-pair auth or OAuth for production</div>
-        <div class="bp-desc self-only">Password-based service accounts can't enforce MFA and are harder to rotate. Key-pair (Snowflake) and service accounts / ADC (BigQuery, Databricks) are the production standard.</div>
-      </div>
-    </div>
-    <div class="bp-item good">
-      <div class="bp-icon">✅</div>
-      <div>
-        <div class="bp-title">Separate dev and prod databases, not just schemas</div>
-        <div class="bp-desc self-only">Use <code>ANALYTICS_DEV</code> for development and <code>ANALYTICS</code> for production. This makes it physically impossible to overwrite production data with a local <code>dbt run</code>.</div>
-      </div>
+    <div class="callout"><strong>Which one should we use?</strong> Start with your database's built-in option if it supports private connections. If you need more control over who can connect, or your database does not support it, ask your dbt account team which option fits your setup.</div>
+    <div class="support-box">
+      <div class="support-box-title"><span class="dot" style="background:var(--green-600)"></span>Getting help</div>
+      <div class="support-col-body" style="font-size:13px">All three options keep data off the public internet. The difference is who builds each side of the tunnel. dbt's field engineering team can guide your setup for any of these options.</div>
     </div>
   </div>
 
-  <div class="nav-btns">
-    <button class="btn btn-sec" onclick="go(4)">← Back</button>
-    <button class="btn btn-pri" disabled>Done ✓</button>
+  <div class="for-security">
+    <div class="summary">
+      <div class="metric"><div class="metric-label">Internet traversal</div><div class="metric-value good">None</div></div>
+      <div class="metric"><div class="metric-label">Public IPs needed</div><div class="metric-value good">No</div></div>
+      <div class="metric"><div class="metric-label">IP allowlisting</div><div class="metric-value good">Not needed</div></div>
+      <div class="metric"><div class="metric-label">CISO friendliness</div><div class="metric-value good">High</div></div>
+    </div>
+    <div class="pl-selector">
+      <div class="pl-opt selected" id="sec-opt-native" onclick="selectPL('native','security')">
+        <div class="pl-opt-tag" style="background:var(--green-50);color:var(--green-800)">Lowest lift</div>
+        <div class="pl-opt-title">Warehouse-native PrivateLink</div>
+        <div class="pl-opt-body">Snowflake, Databricks, etc. expose a PrivateLink endpoint directly. dbt connects to the private hostname instead of the public one. No NLB or endpoint service needed on your side.</div>
+      </div>
+      <div class="pl-opt" id="sec-opt-dbt" onclick="selectPL('dbt','security')">
+        <div class="pl-opt-tag" style="background:var(--blue-50);color:var(--blue-800)">Shared setup</div>
+        <div class="pl-opt-title">dbt-managed PrivateLink</div>
+        <div class="pl-opt-body">dbt Labs provisions the consumer VPC endpoint and initiates the connection to your endpoint service. Your team provisions the endpoint service and NLB, then approves the connection request.</div>
+      </div>
+      <div class="pl-opt" id="sec-opt-customer" onclick="selectPL('customer','security')">
+        <div class="pl-opt-tag" style="background:var(--purple-50);color:var(--purple-800)">Most control</div>
+        <div class="pl-opt-title">Customer-managed PrivateLink</div>
+        <div class="pl-opt-body">Your team provisions the VPC endpoint service and internal NLB. You share the service name with dbt Labs. You control the account ID allowlist and can revoke access at any time.</div>
+      </div>
+    </div>
+    <p class="hint" style="margin-top:4px">Click any component in the diagram to learn more.</p>
+    <div class="diagram-wrap" id="sec-pl-diagram">
+      <!-- Rendered by JS -->
+    </div>
+    <div id="explain-pl" class="explain-box"><div class="explain-title" id="explain-pl-title"></div><div class="explain-body" id="explain-pl-body"></div></div>
+    <div class="support-box">
+      <div class="support-box-title"><span class="dot" style="background:var(--green-600)"></span>Setup and support</div>
+      <div class="support-row">
+        <div class="support-col"><div class="support-col-label">Warehouse-native</div><div class="support-col-body">Enable PrivateLink on your warehouse account and update the connection hostname in dbt. Lowest setup effort.</div></div>
+        <div class="support-col"><div class="support-col-label">dbt-managed</div><div class="support-col-body">dbt Labs provisions the consumer endpoint. Your team provisions the endpoint service and NLB, then approves the connection request from dbt's account ID.</div></div>
+        <div class="support-col"><div class="support-col-label">Customer-managed</div><div class="support-col-body">Your team provisions the endpoint service and NLB. Share the service name with dbt Labs. Field engineering guides enterprise setups. One-time setup with a documented runbook.</div></div>
+      </div>
+    </div>
+    <div class="callout"><strong>All three share the same guarantee:</strong> traffic stays on the AWS backbone and never touches the public internet. The difference is who builds which side of the connection and how much control your team retains.</div>
   </div>
 </div>
 
+<!-- ==================== COMPARE ==================== -->
+<div id="tab-compare" class="panel">
+  <div class="for-everyone">
+    <p style="font-size:14px;color:var(--muted);margin-bottom:18px">Here is a simple way to pick the right option.</p>
+    <div class="plain-steps">
+      <div class="plain-step"><div class="step-num">1</div><div class="step-body"><strong>Building it yourself or want full control?</strong> Use dbt Core. Free, open-source, your team manages everything.</div></div>
+      <div class="plain-step"><div class="step-num">2</div><div class="step-body"><strong>Want dbt Labs to manage the servers?</strong> Start with the shared dbt Platform. Works out of the box for most companies.</div></div>
+      <div class="plain-step"><div class="step-num">3</div><div class="step-body"><strong>In a regulated industry or need a dedicated instance?</strong> Ask about single-tenant. Same service, but yours alone.</div></div>
+      <div class="plain-step"><div class="step-num">4</div><div class="step-body"><strong>Security team says data cannot go over the internet?</strong> Add a private connection. See the private connections tab for the three setup options.</div></div>
+    </div>
+  </div>
+  <div class="for-security">
+    <p class="section-label">All connection modes compared</p>
+    <div style="overflow-x:auto">
+    <table class="comparison">
+      <thead><tr><th style="min-width:110px"></th><th>dbt Core</th><th>Multi-tenant</th><th>Single-tenant</th><th>+ PrivateLink</th><th>+ VPC peering</th></tr></thead>
+      <tbody>
+        <tr><td class="rl">Internet traversal</td><td><span class="badge ba">Depends on host</span></td><td><span class="badge bc">Yes</span></td><td><span class="badge bc">Yes (default)</span></td><td><span class="badge bg">None</span></td><td><span class="badge bg">None</span></td></tr>
+        <tr><td class="rl">Managed infra</td><td>None, self-managed</td><td>dbt Labs (shared)</td><td>dbt Labs (dedicated)</td><td>Split, see tab</td><td>Split, both sides</td></tr>
+        <tr><td class="rl">Warehouse endpoint</td><td>Your choice</td><td><span class="badge bc">Public required</span></td><td><span class="badge bc">Public required</span></td><td><span class="badge bg">Private only</span></td><td><span class="badge bg">Private only</span></td></tr>
+        <tr><td class="rl">IP allowlisting</td><td>Your call</td><td>Required, dbt NAT IPs</td><td>Required, stable IPs</td><td><span class="badge bg">Not needed</span></td><td>Security groups</td></tr>
+        <tr><td class="rl">Dedicated compute</td><td>Your infra</td><td><span class="badge bgr">No, shared</span></td><td><span class="badge bg">Yes</span></td><td>Inherits from tier</td><td>Inherits from tier</td></tr>
+        <tr><td class="rl">Cloud provider</td><td>Any</td><td>AWS</td><td>AWS</td><td>AWS only</td><td>AWS, GCP (caveats)</td></tr>
+        <tr><td class="rl">Same region required</td><td>No</td><td>No</td><td>No</td><td>No, cross-region OK</td><td><span class="badge ba">Yes</span></td></tr>
+        <tr><td class="rl">Setup complexity</td><td><span class="badge bg">Low</span></td><td><span class="badge bg">Low</span></td><td><span class="badge bg">Low</span></td><td><span class="badge ba">Medium</span></td><td><span class="badge bc">High</span></td></tr>
+        <tr><td class="rl">Support</td><td>Community only</td><td>dbt Labs support</td><td>Dedicated tier</td><td>Field engineering for setup</td><td>Field eng, more coordination</td></tr>
+        <tr><td class="rl">CISO friendliness</td><td>Depends on setup</td><td><span class="badge ba">Moderate</span></td><td><span class="badge ba">Moderate+</span></td><td><span class="badge bg">High</span></td><td><span class="badge ba">Moderate</span></td></tr>
+        <tr><td class="rl">Best for</td><td>OSS-first, custom orchestration</td><td>Getting started on platform</td><td>Regulated industries</td><td>Strict private connectivity on AWS</td><td>GCP or bidirectional needs</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p class="section-label">How to choose</p>
+    <div class="callout">
+      <strong>Start with dbt Core</strong> if you want full control or are evaluating before committing to the platform.<br><br>
+      <strong>Start with multi-tenant</strong> if you want dbt Labs to manage the runtime. Add PrivateLink before production if your security team requires private connectivity.<br><br>
+      <strong>Choose single-tenant</strong> if you need dedicated infrastructure or are in a regulated industry.<br><br>
+      <strong>Add PrivateLink</strong> when your warehouse cannot have a public endpoint or your CISO requires all traffic off the internet. Start with warehouse-native if your warehouse supports it.<br><br>
+      <strong>Use VPC peering</strong> only if PrivateLink is not available for your architecture or you need bidirectional VPC connectivity.
+    </div>
+  </div>
 </div>
+
 <script>
-let cur = 0;
-function go(i) {
-  document.querySelectorAll('.panel').forEach((p,j) => p.classList.toggle('active', j===i));
-  document.querySelectorAll('.nav-step').forEach((s,j) => {
-    s.classList.remove('active','done');
-    if (j===i) s.classList.add('active');
-    else if (j<i) s.classList.add('done');
+// ── Explain data ──────────────────────────────────────────────────────────────
+const data={
+  core:{
+    local:{title:"Local machine",body:"dbt Core runs on a developer's workstation. The connection follows the machine's network. On VPN it is private; off VPN it is over the internet."},
+    ci:{title:"CI / CD pipeline",body:"dbt Core can run in GitHub Actions, GitLab CI, or similar. A runner in your private network connects privately; a hosted runner connects over the internet."},
+    orch:{title:"Orchestrator",body:"Tools like Airflow, Prefect, or Dagster can trigger dbt Core runs. The network path follows the orchestrator's environment."},
+    profiles:{title:"profiles.yml",body:"This file holds your warehouse credentials and connection config. It is the only thing dbt Core needs to connect. No dbt-managed infrastructure is in the path."},
+    wh:{title:"Data platform",body:"dbt Core supports Snowflake, Databricks, BigQuery, Redshift, and more via adapters. The warehouse just needs to be reachable from wherever Core is running."},
+  },
+  multi:{
+    runtime:{title:"Shared execution runtime",body:"When you trigger a job in dbt Platform, it runs on shared infrastructure managed by dbt Labs. Each customer's jobs are logically isolated with separate containers and credentials, but the underlying compute is shared."},
+    nat:{title:"Published NAT IPs",body:"dbt Labs publishes a static list of NAT IPs that outbound traffic uses. You add these to your warehouse firewall allowlist. If the list grows, dbt notifies you and your team updates the rules."},
+    internet:{title:"Public internet",body:"In the default setup, traffic crosses the public internet from dbt's infrastructure to your warehouse. It is TLS-encrypted in transit. CISOs who require private connectivity should add PrivateLink."},
+    fw:{title:"Firewall and IP allowlist",body:"Your firewall controls access by source IP. You allowlist dbt's NAT IPs. PrivateLink removes this dependency entirely."},
+    wh:{title:"Data platform (public endpoint)",body:"With default multi-tenant connectivity your warehouse needs a publicly accessible endpoint. It is protected by credentials and your IP allowlist, but it is reachable from the internet."},
+  },
+  single:{
+    runtime:{title:"Dedicated execution runtime",body:"Your dbt jobs do not share compute with any other customer. This simplifies compliance conversations: your dbt environment is fully isolated."},
+    vpc:{title:"Dedicated VPC",body:"Your dbt Platform instance lives in its own VPC with a known CIDR range. This makes allowlisting predictable and PrivateLink setup simpler."},
+    pl:{title:"AWS backbone (PrivateLink)",body:"The recommended path. Traffic stays within AWS's internal network. Because the source account is dedicated to you, your security team can validate the exact account ID before accepting."},
+    pub:{title:"Public internet (fallback)",body:"Single-tenant can also connect over the public internet if PrivateLink has not been configured. The IP list is smaller and more stable than multi-tenant."},
+    svc:{title:"VPC endpoint service",body:"Your team provisions this in your AWS account. You control which AWS account IDs can connect, so you can permit only dbt's dedicated account."},
+    nlb:{title:"Network load balancer",body:"An internal NLB routes traffic from the endpoint service to your firewall and warehouse. Internal-only, no public IP."},
+    fw:{title:"Firewall",body:"Your firewall sits between the NLB and the warehouse. Every packet from dbt passes through it."},
+    wh:{title:"Data platform",body:"With PrivateLink configured your warehouse only needs a private endpoint. Traffic arriving has passed through your endpoint service, NLB, and firewall."},
+  },
+  pl:{
+    endpoint_dbt:{title:"VPC endpoint (dbt-managed)",body:"dbt Labs provisions this endpoint on their side and initiates the connection request to your endpoint service. Your team reviews and approves it from your AWS console."},
+    endpoint_customer:{title:"VPC endpoint (customer-managed)",body:"dbt Labs creates this endpoint after your team shares the endpoint service name. Your team controls the account ID allowlist and approves the connection."},
+    backbone:{title:"AWS backbone only",body:"PrivateLink traffic stays within AWS's internal network and never touches the public internet. Same technology Snowflake and Databricks use for their private connectivity offerings."},
+    svc_dbt:{title:"VPC endpoint service (your side)",body:"Your team provisions this in your AWS account. You allowlist dbt's AWS account ID. dbt Labs initiates the connection request, which your team approves."},
+    svc_customer:{title:"VPC endpoint service (your side)",body:"Your team provisions this and shares the service name with dbt Labs. You control the allowlist. You can revoke access by removing dbt's account ID at any time."},
+    nlb:{title:"Network load balancer",body:"An internal NLB routes traffic from the endpoint service toward your firewall and warehouse. No public IP. Not required in the warehouse-native model."},
+    fw:{title:"Firewall",body:"Your security controls sit here, intact. Every connection from dbt passes through your firewall before reaching the warehouse."},
+    wh_native:{title:"Data platform (warehouse-native PrivateLink)",body:"Your warehouse provider (Snowflake, Databricks, etc.) activates a private hostname in your account. dbt connects to that private hostname instead of the public one. No NLB or endpoint service needed on your side."},
+    wh_private:{title:"Data platform (private endpoint)",body:"Your warehouse only needs a private endpoint. No public IP. Traffic has passed through your endpoint service, NLB, and firewall at every hop."},
+    dbt_cloud:{title:"dbt Platform",body:"In the warehouse-native model, dbt connects directly to your warehouse's private hostname over the AWS backbone. No additional infrastructure is needed on dbt's side beyond updating the connection string."},
+  },
+};
+
+function explain(tab,key){
+  const box=document.getElementById('explain-'+tab);
+  const t=document.getElementById('explain-'+tab+'-title');
+  const b=document.getElementById('explain-'+tab+'-body');
+  const d=data[tab]&&data[tab][key];
+  if(!d||!box)return;
+  t.textContent=d.title;
+  b.textContent=d.body;
+  box.classList.add('visible');
+  box.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+// ── PL diagram SVGs ──────────────────────────────────────────────────────────
+const plDiagrams = {
+  everyone: {
+    native:`<svg width="100%" viewBox="0 0 680 160">
+      <defs><marker id="pn1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+      <rect x="30" y="56" width="140" height="48" rx="8" fill="var(--blue-50)" stroke="var(--blue-600)" stroke-width="0.5"/>
+      <text x="100" y="75" text-anchor="middle" fill="var(--blue-800)" font-size="12" font-weight="500" font-family="inherit">dbt Platform</text>
+      <text x="100" y="94" text-anchor="middle" fill="var(--blue-600)" font-size="10" font-family="inherit">Managed by dbt Labs</text>
+      <rect x="230" y="56" width="200" height="48" rx="8" fill="var(--green-50)" stroke="var(--green-600)" stroke-width="0.5"/>
+      <text x="330" y="75" text-anchor="middle" fill="var(--green-800)" font-size="12" font-weight="500" font-family="inherit">Private tunnel</text>
+      <text x="330" y="94" text-anchor="middle" fill="var(--green-600)" font-size="10" font-family="inherit">Built into your database tool</text>
+      <rect x="490" y="56" width="160" height="48" rx="8" fill="var(--purple-50)" stroke="var(--purple-600)" stroke-width="0.5"/>
+      <text x="570" y="75" text-anchor="middle" fill="var(--purple-800)" font-size="12" font-weight="500" font-family="inherit">Database</text>
+      <text x="570" y="94" text-anchor="middle" fill="var(--purple-600)" font-size="10" font-family="inherit">Private address, no public access</text>
+      <line x1="170" y1="80" x2="228" y2="80" stroke="var(--blue-600)" stroke-width="1.1" marker-end="url(#pn1)"/>
+      <line x1="430" y1="80" x2="488" y2="80" stroke="var(--green-600)" stroke-width="1.1" marker-end="url(#pn1)"/>
+      <text x="340" y="140" text-anchor="middle" fill="var(--green-600)" font-size="11" font-weight="500" font-family="inherit">Your database tool handles the private tunnel. Your team just turns it on.</text>
+    </svg>`,
+    dbt:`<svg width="100%" viewBox="0 0 680 180">
+      <defs><marker id="pd1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+      <rect x="20" y="56" width="150" height="48" rx="8" fill="var(--blue-50)" stroke="var(--blue-600)" stroke-width="0.5"/>
+      <text x="95" y="75" text-anchor="middle" fill="var(--blue-800)" font-size="12" font-weight="500" font-family="inherit">dbt Platform</text>
+      <text x="95" y="94" text-anchor="middle" fill="var(--blue-600)" font-size="10" font-family="inherit">Builds tunnel on their side</text>
+      <rect x="220" y="56" width="160" height="48" rx="8" fill="var(--green-50)" stroke="var(--green-600)" stroke-width="0.5"/>
+      <text x="300" y="75" text-anchor="middle" fill="var(--green-800)" font-size="12" font-weight="500" font-family="inherit">Private tunnel</text>
+      <text x="300" y="94" text-anchor="middle" fill="var(--green-600)" font-size="10" font-family="inherit">Stays off the internet</text>
+      <rect x="430" y="36" width="140" height="48" rx="8" fill="var(--teal-50)" stroke="var(--teal-600)" stroke-width="0.5"/>
+      <text x="500" y="55" text-anchor="middle" fill="var(--teal-800)" font-size="12" font-weight="500" font-family="inherit">Your team</text>
+      <text x="500" y="74" text-anchor="middle" fill="var(--teal-600)" font-size="10" font-family="inherit">Reviews and approves</text>
+      <rect x="430" y="96" width="140" height="48" rx="8" fill="var(--purple-50)" stroke="var(--purple-600)" stroke-width="0.5"/>
+      <text x="500" y="115" text-anchor="middle" fill="var(--purple-800)" font-size="12" font-weight="500" font-family="inherit">Database</text>
+      <text x="500" y="134" text-anchor="middle" fill="var(--purple-600)" font-size="10" font-family="inherit">Private, no public access</text>
+      <line x1="170" y1="80" x2="218" y2="80" stroke="var(--blue-600)" stroke-width="1.1" marker-end="url(#pd1)"/>
+      <line x1="380" y1="72" x2="428" y2="62" stroke="var(--green-600)" stroke-width="1.1" marker-end="url(#pd1)"/>
+      <line x1="380" y1="88" x2="428" y2="110" stroke="var(--green-600)" stroke-width="1.1" marker-end="url(#pd1)"/>
+      <text x="340" y="165" text-anchor="middle" fill="var(--green-600)" font-size="11" font-weight="500" font-family="inherit">dbt Labs sets up their side. Your team reviews and approves the connection.</text>
+    </svg>`,
+    customer:`<svg width="100%" viewBox="0 0 680 180">
+      <defs><marker id="pc1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+      <rect x="20" y="66" width="140" height="48" rx="8" fill="var(--blue-50)" stroke="var(--blue-600)" stroke-width="0.5"/>
+      <text x="90" y="85" text-anchor="middle" fill="var(--blue-800)" font-size="12" font-weight="500" font-family="inherit">dbt Platform</text>
+      <text x="90" y="104" text-anchor="middle" fill="var(--blue-600)" font-size="10" font-family="inherit">Connects to your tunnel</text>
+      <rect x="220" y="66" width="160" height="48" rx="8" fill="var(--green-50)" stroke="var(--green-600)" stroke-width="0.5"/>
+      <text x="300" y="85" text-anchor="middle" fill="var(--green-800)" font-size="12" font-weight="500" font-family="inherit">Private tunnel</text>
+      <text x="300" y="104" text-anchor="middle" fill="var(--green-600)" font-size="10" font-family="inherit">Built by your team</text>
+      <rect x="440" y="36" width="140" height="48" rx="8" fill="var(--teal-50)" stroke="var(--teal-600)" stroke-width="0.5"/>
+      <text x="510" y="55" text-anchor="middle" fill="var(--teal-800)" font-size="12" font-weight="500" font-family="inherit">Your tunnel entry</text>
+      <text x="510" y="72" text-anchor="middle" fill="var(--teal-600)" font-size="10" font-family="inherit">Your team builds and controls</text>
+      <rect x="440" y="96" width="140" height="48" rx="8" fill="var(--purple-50)" stroke="var(--purple-600)" stroke-width="0.5"/>
+      <text x="510" y="115" text-anchor="middle" fill="var(--purple-800)" font-size="12" font-weight="500" font-family="inherit">Database</text>
+      <text x="510" y="134" text-anchor="middle" fill="var(--purple-600)" font-size="10" font-family="inherit">Private, no public access</text>
+      <line x1="160" y1="90" x2="218" y2="90" stroke="var(--blue-600)" stroke-width="1.1" marker-end="url(#pc1)"/>
+      <line x1="380" y1="78" x2="438" y2="62" stroke="var(--green-600)" stroke-width="1.1" marker-end="url(#pc1)"/>
+      <line x1="380" y1="102" x2="438" y2="118" stroke="var(--teal-600)" stroke-width="1.1" marker-end="url(#pc1)"/>
+      <text x="340" y="166" text-anchor="middle" fill="var(--green-600)" font-size="11" font-weight="500" font-family="inherit">Your team builds and controls the tunnel entry. Most setup, most control.</text>
+    </svg>`,
+  },
+  security: {
+    native:`<svg width="100%" viewBox="0 0 680 220">
+      <defs><marker id="sn1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+      <rect x="20" y="30" width="180" height="100" rx="10" fill="var(--blue-50)" stroke="var(--blue-600)" stroke-width="0.5"/>
+      <text x="110" y="50" text-anchor="middle" fill="var(--blue-800)" font-size="11" font-weight="500" font-family="inherit">dbt Platform (AWS)</text>
+      <rect x="36" y="60" width="148" height="52" rx="6" fill="var(--blue-100)" stroke="var(--blue-600)" stroke-width="0.5"/>
+      <text x="110" y="80" text-anchor="middle" fill="var(--blue-800)" font-size="11" font-weight="500" font-family="inherit">dbt runtime</text>
+      <text x="110" y="96" text-anchor="middle" fill="var(--blue-600)" font-size="10" font-family="inherit">Updates connection string</text>
+      <rect x="230" y="62" width="148" height="36" rx="6" fill="var(--green-50)" stroke="var(--green-600)" stroke-width="0.5"/>
+      <text x="304" y="77" text-anchor="middle" fill="var(--green-800)" font-size="11" font-weight="500" font-family="inherit">AWS backbone only</text>
+      <text x="304" y="91" text-anchor="middle" fill="var(--green-600)" font-size="10" font-family="inherit">No public internet</text>
+      <line x1="200" y1="86" x2="228" y2="80" stroke="var(--blue-600)" stroke-width="1.1" marker-end="url(#sn1)"/>
+      <rect x="400" y="20" width="250" height="160" rx="10" fill="var(--purple-50)" stroke="var(--purple-600)" stroke-width="0.5"/>
+      <text x="525" y="40" text-anchor="middle" fill="var(--purple-800)" font-size="11" font-weight="500" font-family="inherit">Your warehouse account</text>
+      <rect x="416" y="54" width="218" height="54" rx="6" onclick="explain('pl','wh_native')" style="cursor:pointer" fill="var(--purple-50)" stroke="var(--purple-600)" stroke-width="0.5"/>
+      <text x="525" y="75" text-anchor="middle" fill="var(--purple-800)" font-size="11" font-weight="500" font-family="inherit">Warehouse-native endpoint</text>
+      <text x="525" y="91" text-anchor="middle" fill="var(--purple-600)" font-size="10" font-family="inherit">Private hostname, no NLB needed</text>
+      <text x="525" y="103" text-anchor="middle" fill="var(--purple-600)" font-size="10" font-family="inherit">Enabled in warehouse settings</text>
+      <line x1="378" y1="80" x2="398" y2="80" stroke="var(--green-600)" stroke-width="1.1" marker-end="url(#sn1)"/>
+      <text x="340" y="198" text-anchor="middle" fill="var(--green-600)" font-size="11" font-weight="500" font-family="inherit">Enable PrivateLink in your warehouse, update the hostname in dbt. No infrastructure changes needed on your side.</text>
+    </svg>`,
+    dbt:`<svg width="100%" viewBox="0 0 680 310">
+      <defs><marker id="sd1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+      <rect x="20" y="20" width="196" height="122" rx="11" fill="var(--blue-50)" stroke="var(--blue-600)" stroke-width="0.5"/>
+      <text x="118" y="38" text-anchor="middle" fill="var(--blue-800)" font-size="11" font-weight="500" font-family="inherit">dbt Platform (AWS)</text>
+      <text x="118" y="52" text-anchor="middle" fill="var(--blue-600)" font-size="10" font-family="inherit">Multi- or single-tenant</text>
+      <rect x="34" y="60" width="168" height="66" rx="6" onclick="explain('pl','endpoint_dbt')" style="cursor:pointer" fill="var(--blue-100)" stroke="var(--blue-600)" stroke-width="0.5"/>
+      <text x="118" y="80" text-anchor="middle" fill="var(--blue-800)" font-size="11" font-weight="500" font-family="inherit">VPC endpoint</text>
+      <text x="118" y="96" text-anchor="middle" fill="var(--blue-600)" font-size="10" font-family="inherit">Provisioned by dbt Labs</text>
+      <text x="118" y="112" text-anchor="middle" fill="var(--blue-600)" font-size="10" font-family="inherit">Initiates connection request</text>
+      <rect x="238" y="68" width="148" height="40" rx="6" onclick="explain('pl','backbone')" style="cursor:pointer" fill="var(--green-50)" stroke="var(--green-600)" stroke-width="0.5"/>
+      <text x="312" y="84" text-anchor="middle" fill="var(--green-800)" font-size="11" font-weight="500" font-family="inherit">AWS backbone only</text>
+      <text x="312" y="100" text-anchor="middle" fill="var(--green-600)" font-size="10" font-family="inherit">No public internet</text>
+      <line x1="202" y1="92" x2="236" y2="88" stroke="var(--blue-600)" stroke-width="1.1" marker-end="url(#sd1)"/>
+      <line x1="386" y1="88" x2="412" y2="106" stroke="var(--green-600)" stroke-width="1.1" marker-end="url(#sd1)"/>
+      <rect x="410" y="20" width="248" height="250" rx="11" fill="var(--teal-50)" stroke="var(--teal-600)" stroke-width="0.5"/>
+      <text x="534" y="38" text-anchor="middle" fill="var(--teal-800)" font-size="11" font-weight="500" font-family="inherit">Your AWS account (VPC)</text>
+      <rect x="424" y="50" width="220" height="54" rx="6" onclick="explain('pl','svc_dbt')" style="cursor:pointer" fill="var(--teal-100)" stroke="var(--teal-600)" stroke-width="0.5"/>
+      <text x="534" y="70" text-anchor="middle" fill="var(--teal-800)" font-size="11" font-weight="500" font-family="inherit">VPC endpoint service</text>
+      <text x="534" y="86" text-anchor="middle" fill="var(--teal-600)" font-size="10" font-family="inherit">Your team provisions</text>
+      <text x="534" y="98" text-anchor="middle" fill="var(--teal-600)" font-size="10" font-family="inherit">Approve dbt's connection request</text>
+      <rect x="424" y="116" width="220" height="40" rx="6" onclick="explain('pl','nlb')" style="cursor:pointer" fill="var(--amber-50)" stroke="var(--amber-600)" stroke-width="0.5"/>
+      <text x="534" y="132" text-anchor="middle" fill="var(--amber-800)" font-size="11" font-weight="500" font-family="inherit">Network load balancer</text>
+      <text x="534" y="148" text-anchor="middle" fill="var(--amber-600)" font-size="10" font-family="inherit">Internal routing, no public IP</text>
+      <rect x="424" y="168" width="104" height="40" rx="6" onclick="explain('pl','fw')" style="cursor:pointer" fill="var(--coral-50)" stroke="var(--coral-600)" stroke-width="0.5"/>
+      <text x="476" y="184" text-anchor="middle" fill="var(--coral-800)" font-size="11" font-weight="500" font-family="inherit">Firewall</text>
+      <text x="476" y="200" text-anchor="middle" fill="var(--coral-600)" font-size="10" font-family="inherit">CISO controls intact</text>
+      <rect x="540" y="168" width="104" height="40" rx="6" onclick="explain('pl','wh_private')" style="cursor:pointer" fill="var(--purple-50)" stroke="var(--purple-600)" stroke-width="0.5"/>
+      <text x="592" y="184" text-anchor="middle" fill="var(--purple-800)" font-size="11" font-weight="500" font-family="inherit">Data platform</text>
+      <text x="592" y="200" text-anchor="middle" fill="var(--purple-600)" font-size="10" font-family="inherit">Private endpoint</text>
+      <line x1="534" y1="104" x2="534" y2="114" stroke="var(--teal-600)" stroke-width="1.1" marker-end="url(#sd1)"/>
+      <line x1="534" y1="156" x2="534" y2="166" stroke="var(--amber-600)" stroke-width="1.1" marker-end="url(#sd1)"/>
+      <line x1="528" y1="188" x2="538" y2="188" stroke="var(--coral-600)" stroke-width="1.1" marker-end="url(#sd1)"/>
+      <text x="340" y="292" text-anchor="middle" fill="var(--muted)" font-size="11" font-family="inherit">dbt Labs provisions the endpoint and sends a connection request. Your team approves it.</text>
+    </svg>`,
+    customer:`<svg width="100%" viewBox="0 0 680 310">
+      <defs><marker id="sc1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+      <rect x="20" y="20" width="196" height="122" rx="11" fill="var(--blue-50)" stroke="var(--blue-600)" stroke-width="0.5"/>
+      <text x="118" y="38" text-anchor="middle" fill="var(--blue-800)" font-size="11" font-weight="500" font-family="inherit">dbt Platform (AWS)</text>
+      <text x="118" y="52" text-anchor="middle" fill="var(--blue-600)" font-size="10" font-family="inherit">Multi- or single-tenant</text>
+      <rect x="34" y="60" width="168" height="66" rx="6" onclick="explain('pl','endpoint_customer')" style="cursor:pointer" fill="var(--blue-100)" stroke="var(--blue-600)" stroke-width="0.5"/>
+      <text x="118" y="80" text-anchor="middle" fill="var(--blue-800)" font-size="11" font-weight="500" font-family="inherit">VPC endpoint</text>
+      <text x="118" y="96" text-anchor="middle" fill="var(--blue-600)" font-size="10" font-family="inherit">Created by dbt Labs</text>
+      <text x="118" y="112" text-anchor="middle" fill="var(--blue-600)" font-size="10" font-family="inherit">After you share service name</text>
+      <rect x="238" y="68" width="148" height="40" rx="6" onclick="explain('pl','backbone')" style="cursor:pointer" fill="var(--green-50)" stroke="var(--green-600)" stroke-width="0.5"/>
+      <text x="312" y="84" text-anchor="middle" fill="var(--green-800)" font-size="11" font-weight="500" font-family="inherit">AWS backbone only</text>
+      <text x="312" y="100" text-anchor="middle" fill="var(--green-600)" font-size="10" font-family="inherit">No public internet</text>
+      <line x1="202" y1="92" x2="236" y2="88" stroke="var(--blue-600)" stroke-width="1.1" marker-end="url(#sc1)"/>
+      <line x1="386" y1="88" x2="412" y2="106" stroke="var(--green-600)" stroke-width="1.1" marker-end="url(#sc1)"/>
+      <rect x="410" y="20" width="248" height="250" rx="11" fill="var(--teal-50)" stroke="var(--teal-600)" stroke-width="0.5"/>
+      <text x="534" y="38" text-anchor="middle" fill="var(--teal-800)" font-size="11" font-weight="500" font-family="inherit">Your AWS account (VPC)</text>
+      <rect x="424" y="50" width="220" height="54" rx="6" onclick="explain('pl','svc_customer')" style="cursor:pointer" fill="var(--teal-100)" stroke="var(--teal-600)" stroke-width="0.5"/>
+      <text x="534" y="70" text-anchor="middle" fill="var(--teal-800)" font-size="11" font-weight="500" font-family="inherit">VPC endpoint service</text>
+      <text x="534" y="86" text-anchor="middle" fill="var(--teal-600)" font-size="10" font-family="inherit">Your team provisions</text>
+      <text x="534" y="98" text-anchor="middle" fill="var(--teal-600)" font-size="10" font-family="inherit">You control the account ID allowlist</text>
+      <rect x="424" y="116" width="220" height="40" rx="6" onclick="explain('pl','nlb')" style="cursor:pointer" fill="var(--amber-50)" stroke="var(--amber-600)" stroke-width="0.5"/>
+      <text x="534" y="132" text-anchor="middle" fill="var(--amber-800)" font-size="11" font-weight="500" font-family="inherit">Network load balancer</text>
+      <text x="534" y="148" text-anchor="middle" fill="var(--amber-600)" font-size="10" font-family="inherit">Internal routing, no public IP</text>
+      <rect x="424" y="168" width="104" height="40" rx="6" onclick="explain('pl','fw')" style="cursor:pointer" fill="var(--coral-50)" stroke="var(--coral-600)" stroke-width="0.5"/>
+      <text x="476" y="184" text-anchor="middle" fill="var(--coral-800)" font-size="11" font-weight="500" font-family="inherit">Firewall</text>
+      <text x="476" y="200" text-anchor="middle" fill="var(--coral-600)" font-size="10" font-family="inherit">CISO controls intact</text>
+      <rect x="540" y="168" width="104" height="40" rx="6" onclick="explain('pl','wh_private')" style="cursor:pointer" fill="var(--purple-50)" stroke="var(--purple-600)" stroke-width="0.5"/>
+      <text x="592" y="184" text-anchor="middle" fill="var(--purple-800)" font-size="11" font-weight="500" font-family="inherit">Data platform</text>
+      <text x="592" y="200" text-anchor="middle" fill="var(--purple-600)" font-size="10" font-family="inherit">Private endpoint</text>
+      <line x1="534" y1="104" x2="534" y2="114" stroke="var(--teal-600)" stroke-width="1.1" marker-end="url(#sc1)"/>
+      <line x1="534" y1="156" x2="534" y2="166" stroke="var(--amber-600)" stroke-width="1.1" marker-end="url(#sc1)"/>
+      <line x1="528" y1="188" x2="538" y2="188" stroke="var(--coral-600)" stroke-width="1.1" marker-end="url(#sc1)"/>
+      <text x="340" y="292" text-anchor="middle" fill="var(--muted)" font-size="11" font-family="inherit">Your team owns the endpoint service. You share the name with dbt Labs. You control who can connect.</text>
+    </svg>`,
+  }
+};
+
+let currentPL = 'native';
+
+function selectPL(type, aud) {
+  currentPL = type;
+  // update selector highlights for the active audience
+  ['native','dbt','customer'].forEach(t => {
+    const eoEl = document.getElementById('eo-opt-'+t);
+    const secEl = document.getElementById('sec-opt-'+t);
+    if(eoEl) eoEl.classList.toggle('selected', t===type);
+    if(secEl) secEl.classList.toggle('selected', t===type);
   });
-  cur = i;
-  window.scrollTo({top:0,behavior:'smooth'});
+  // update diagrams for both audiences
+  const eoD = document.getElementById('eo-pl-diagram');
+  const secD = document.getElementById('sec-pl-diagram');
+  if(eoD) eoD.innerHTML = plDiagrams.everyone[type];
+  if(secD) secD.innerHTML = plDiagrams.security[type];
+  // clear explain box
+  const box = document.getElementById('explain-pl');
+  if(box) box.classList.remove('visible');
 }
-function selectAuth(i) {
-  document.querySelectorAll('.auth-card').forEach((c,j) => c.classList.toggle('selected', j===i));
-  document.querySelectorAll('.auth-detail').forEach((d,j) => d.classList.toggle('show', j===i));
+
+function showTab(id,btn){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  btn.classList.add('active');
+  document.querySelectorAll('.explain-box').forEach(b=>b.classList.remove('visible'));
 }
-function setMode(m) {
-  document.body.classList.toggle('demo-mode', m==='demo');
-  document.getElementById('btn-self').classList.toggle('active', m==='self');
-  document.getElementById('btn-demo').classList.toggle('active', m==='demo');
+
+function setAud(aud,btn){
+  document.querySelectorAll('.aud-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.body.className='aud-'+aud;
 }
+
+// Init PL diagrams on load
+selectPL('native','everyone');
 </script>
 </body>
 </html>

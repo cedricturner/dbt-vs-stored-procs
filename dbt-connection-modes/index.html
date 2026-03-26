@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>dbt Connection Modes — Interactive Walkthrough</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',sans-serif;background:#0e1117;color:#e6edf3;min-height:100vh;overflow-x:hidden}
+.app{max-width:1020px;margin:0 auto;padding:40px 20px 80px}
+
+.hdr{text-align:center;margin-bottom:40px}
+.hdr-tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#ff6b35;background:rgba(255,107,53,.1);border:1px solid rgba(255,107,53,.25);padding:4px 13px;border-radius:99px;margin-bottom:14px}
+.hdr h1{font-size:clamp(22px,4vw,36px);font-weight:600;line-height:1.2;margin-bottom:10px;color:#fff}
+.hdr p{color:#8b949e;font-size:14px;max-width:540px;margin:0 auto;line-height:1.6}
+
+.nav{display:flex;align-items:center;margin-bottom:32px;background:#161b22;border:1px solid #2d333b;border-radius:12px;padding:5px;gap:3px;flex-wrap:wrap}
+.nav-step{flex:1;min-width:80px;display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 6px;border-radius:8px;cursor:pointer;border:none;background:transparent;color:#8b949e;transition:all .2s;font-family:'DM Sans',sans-serif}
+.nav-step:hover{background:#1c2129;color:#e6edf3}
+.nav-step.active{background:#ff6b35;color:#fff;box-shadow:0 2px 10px rgba(255,107,53,.3)}
+.nav-step.done .step-num{background:rgba(63,185,80,.25);color:#3fb950}
+.step-num{width:19px;height:19px;border-radius:50%;background:rgba(255,255,255,.1);font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.nav-step.active .step-num{background:rgba(255,255,255,.25)}
+.step-lbl{font-size:11px;font-weight:500;text-align:center;line-height:1.3}
+
+.panel{display:none;animation:fi .3s ease}
+.panel.active{display:block}
+@keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+
+.hint{display:flex;align-items:flex-start;gap:11px;background:#161b22;border:1px solid #2d333b;border-radius:9px;padding:14px 16px;margin-bottom:20px;font-size:13px;color:#8b949e;line-height:1.55}
+.hint-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+.hint strong{color:#e6edf3}
+.hint code{font-family:'JetBrains Mono',monospace;font-size:12px;background:#0d1117;padding:1px 5px;border-radius:3px}
+
+.code-wrap{border-radius:9px;overflow:hidden;border:2px solid #2d333b;margin-bottom:12px}
+.code-head{display:flex;align-items:center;justify-content:space-between;padding:9px 15px;background:#161b22;border-bottom:1px solid #2d333b}
+.lbl{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.3px}
+.badge{font-family:'JetBrains Mono',monospace;font-size:9px;padding:2px 8px;border-radius:99px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.code-body{background:#0d1117;padding:15px 17px;overflow-x:auto}
+.code-body pre{font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:1.72;color:#e6edf3;white-space:pre}
+
+.hl{display:block;margin:0 -17px;padding:0 17px;border-left:3px solid #58a6ff;background:rgba(88,166,255,.07)}
+.gl{display:block;margin:0 -17px;padding:0 17px;border-left:3px solid #3fb950;background:rgba(63,185,80,.07)}
+.wl{display:block;margin:0 -17px;padding:0 17px;border-left:3px solid #d29922;background:rgba(210,153,34,.07)}
+.pl{display:block;margin:0 -17px;padding:0 17px;border-left:3px solid #d2a8ff;background:rgba(210,168,255,.07)}
+.rl{display:block;margin:0 -17px;padding:0 17px;border-left:3px solid #f85149;background:rgba(248,81,73,.07)}
+.an{font-size:10px;font-style:italic}
+.an-b{color:#58a6ff}.an-g{color:#3fb950}.an-w{color:#d29922}.an-p{color:#d2a8ff}.an-r{color:#f85149}
+
+.flow{display:flex;align-items:center;margin-bottom:20px;overflow-x:auto;padding:20px 0;gap:0}
+.flow-node{background:#161b22;border:1px solid #2d333b;border-radius:8px;padding:13px 18px;text-align:center;min-width:120px;flex-shrink:0}
+.flow-node .fn-title{font-size:12px;font-weight:600;color:#e6edf3;margin-bottom:3px}
+.flow-node .fn-sub{font-size:10px;color:#8b949e;font-family:'JetBrains Mono',monospace}
+.flow-node.highlight{border-color:#ff6b35;background:rgba(255,107,53,.07)}
+.flow-node.highlight .fn-title{color:#ff6b35}
+.flow-arrow{color:#444c56;font-size:20px;padding:0 10px;flex-shrink:0;user-select:none}
+
+.target-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:18px}
+.target-card{background:#161b22;border-radius:9px;padding:13px 15px}
+.target-card .tc-name{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;margin-bottom:5px}
+.target-card .tc-desc{font-size:11px;color:#8b949e;line-height:1.5}
+
+.auth-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
+.auth-card{background:#161b22;border:1px solid #2d333b;border-radius:9px;padding:14px 15px;cursor:pointer;transition:all .2s}
+.auth-card:hover{border-color:#58a6ff;background:#1c2129}
+.auth-card.selected{border-color:#ff6b35;background:rgba(255,107,53,.05)}
+.auth-title{font-size:13px;font-weight:600;margin-bottom:4px;color:#e6edf3}
+.auth-sub{font-size:11px;color:#8b949e;line-height:1.4;margin-bottom:9px}
+.auth-platforms{display:flex;gap:5px;flex-wrap:wrap}
+.auth-pill{font-family:'JetBrains Mono',monospace;font-size:9px;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,.07);color:#8b949e}
+
+.auth-detail{display:none;margin-bottom:18px}
+.auth-detail.show{display:block}
+
+.callout{border-radius:7px;padding:11px 13px;margin-top:9px;font-size:12px;color:#8b949e;line-height:1.6}
+.callout code{font-family:'JetBrains Mono',monospace;font-size:11px;background:#0d1117;padding:1px 5px;border-radius:3px}
+.callout-warn{background:#0f1117;border:1px solid rgba(248,81,73,.2)}
+.callout-good{background:#080f08;border:1px solid rgba(63,185,80,.2)}
+
+.platform-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
+.platform-card{background:#161b22;border:1px solid #2d333b;border-radius:9px;overflow:hidden}
+.platform-card.sf{border-top:3px solid #29b5e8}
+.platform-card.bq{border-top:3px solid #4285f4}
+.platform-card.db{border-top:3px solid #ff3621}
+.platform-card.rs{border-top:3px solid #8c4fff}
+.platform-head{padding:11px 15px;border-bottom:1px solid #2d333b;display:flex;align-items:center;gap:8px}
+.platform-name{font-size:13px;font-weight:600}
+.platform-tag{font-family:'JetBrains Mono',monospace;font-size:9px;padding:2px 7px;border-radius:99px;font-weight:600}
+.sf .platform-name{color:#29b5e8}.sf .platform-tag{background:rgba(41,181,232,.15);color:#29b5e8}
+.bq .platform-name{color:#4285f4}.bq .platform-tag{background:rgba(66,133,244,.15);color:#4285f4}
+.db .platform-name{color:#ff3621}.db .platform-tag{background:rgba(255,54,33,.15);color:#ff3621}
+.rs .platform-name{color:#8c4fff}.rs .platform-tag{background:rgba(140,79,255,.15);color:#8c4fff}
+.platform-body{padding:13px 15px}
+.platform-body pre{font-family:'JetBrains Mono',monospace;font-size:10.5px;line-height:1.7;color:#e6edf3;white-space:pre}
+
+.compare-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+.compare-block{background:#161b22;border:1px solid #2d333b;border-radius:9px;padding:14px 16px}
+.compare-block h4{font-size:11px;font-weight:600;margin-bottom:12px;text-transform:uppercase;letter-spacing:1px;font-family:'JetBrains Mono',monospace}
+.compare-block.core h4{color:#8b949e}
+.compare-block.cloud{border-color:rgba(63,185,80,.3)}
+.compare-block.cloud h4{color:#3fb950}
+.check-row{display:flex;align-items:flex-start;gap:8px;font-size:12px;color:#8b949e;margin-bottom:8px;line-height:1.45}
+.check-row .ci{flex-shrink:0;margin-top:1px}
+.check-row strong{color:#e6edf3}
+
+.bp-list{display:flex;flex-direction:column;gap:10px;margin-bottom:18px}
+.bp-item{display:flex;align-items:flex-start;gap:12px;background:#161b22;border:1px solid #2d333b;border-radius:9px;padding:13px 15px}
+.bp-item.good{border-left:3px solid #3fb950}
+.bp-item.warn{border-left:3px solid #f85149}
+.bp-icon{font-size:18px;flex-shrink:0}
+.bp-title{font-size:13px;font-weight:600;margin-bottom:3px;color:#e6edf3}
+.bp-desc{font-size:12px;color:#8b949e;line-height:1.5}
+.bp-desc code{font-family:'JetBrains Mono',monospace;font-size:11px;background:#0d1117;padding:1px 5px;border-radius:3px}
+
+.nav-btns{display:flex;justify-content:space-between;margin-top:28px;gap:10px}
+.btn{padding:9px 20px;border-radius:8px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;transition:all .2s}
+.btn-sec{background:#161b22;border:1px solid #2d333b;color:#8b949e}
+.btn-sec:hover{color:#e6edf3;border-color:#444c56}
+.btn-pri{background:#ff6b35;color:#fff}
+.btn-pri:hover{background:#e85d2a;box-shadow:0 2px 10px rgba(255,107,53,.3)}
+.btn:disabled{opacity:.3;cursor:not-allowed}
+
+.back-link{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:#444c56;text-decoration:none;margin-bottom:28px;transition:color .2s}
+.back-link:hover{color:#8b949e}
+
+.mode-bar{display:flex;justify-content:flex-end;margin-bottom:20px;gap:8px;align-items:center}
+.mode-lbl{font-size:11px;color:#444c56}
+.mode-btn{padding:5px 12px;border-radius:6px;border:1px solid #2d333b;background:transparent;color:#8b949e;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s}
+.mode-btn.active{background:#161b22;color:#e6edf3;border-color:#444c56}
+.self-only{display:block}
+.demo-only{display:none}
+body.demo-mode .self-only{display:none}
+body.demo-mode .demo-only{display:block}
+
+@media(max-width:640px){
+  .platform-grid,.auth-grid,.compare-row,.target-row{grid-template-columns:1fr}
+  .flow{flex-wrap:wrap}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<a href="../" class="back-link">← all walkthroughs</a>
+
+<div class="mode-bar">
+  <span class="mode-lbl">mode:</span>
+  <button class="mode-btn active" id="btn-self" onclick="setMode('self')">self-serve</button>
+  <button class="mode-btn" id="btn-demo" onclick="setMode('demo')">demo</button>
+</div>
+
+<div class="hdr">
+  <div class="hdr-tag">interactive walkthrough</div>
+  <h1>How dbt Connects to Your Data Platform</h1>
+  <p>From a credentials file on your laptop to a secure service account in production — understand every layer of dbt's connection model.</p>
+</div>
+
+<div class="nav">
+  <button class="nav-step active" onclick="go(0)"><span class="step-num">1</span><span class="step-lbl">The Big Picture</span></button>
+  <button class="nav-step" onclick="go(1)"><span class="step-num">2</span><span class="step-lbl">profiles.yml</span></button>
+  <button class="nav-step" onclick="go(2)"><span class="step-num">3</span><span class="step-lbl">Auth Methods</span></button>
+  <button class="nav-step" onclick="go(3)"><span class="step-num">4</span><span class="step-lbl">Platform Adapters</span></button>
+  <button class="nav-step" onclick="go(4)"><span class="step-num">5</span><span class="step-lbl">dbt Cloud</span></button>
+  <button class="nav-step" onclick="go(5)"><span class="step-num">6</span><span class="step-lbl">Best Practices</span></button>
+</div>
+
+<!-- ═══ PANEL 1: Big Picture ═══ -->
+<div class="panel active" id="panel-0">
+  <div class="hint self-only">
+    <span class="hint-icon">💡</span>
+    <div><strong>dbt doesn't store data — it runs SQL against your warehouse.</strong> To do that, it needs to know: what platform to connect to, where on that platform, and who you are. This walkthrough covers every layer of that connection model.</div>
+  </div>
+  <div class="hint demo-only">
+    <span class="hint-icon">🔌</span>
+    <div><strong>dbt needs a connection to run.</strong> Let's follow the path from your machine to the warehouse.</div>
+  </div>
+
+  <div class="flow">
+    <div class="flow-node"><div class="fn-title">dbt CLI / Cloud</div><div class="fn-sub">runs your project</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node highlight"><div class="fn-title">Connection Config</div><div class="fn-sub">profiles.yml or UI</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node"><div class="fn-title">Adapter</div><div class="fn-sub">dbt-snowflake etc.</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node"><div class="fn-title">Data Platform</div><div class="fn-sub">Snowflake / BQ / etc.</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node"><div class="fn-title">Target Schema</div><div class="fn-sub">where models land</div></div>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-head"><span class="lbl" style="color:#ff6b35">Three things every dbt connection needs</span></div>
+    <div class="code-body"><pre><span class="hl"><span class="an an-b"># 1. WHAT — the platform type (drives which adapter is used)</span>
+type: snowflake
+</span>
+<span class="hl"><span class="an an-b"># 2. WHERE — account location, database, schema, and warehouse/compute</span>
+account: abc123.us-east-1
+database: ANALYTICS
+schema: dbt_dev
+warehouse: COMPUTE_WH
+</span>
+<span class="gl"><span class="an an-g"># 3. WHO — authentication (covered in step 3)</span>
+user: jane@company.com
+password: "{{ env_var('DBT_PASSWORD') }}"
+</span></pre></div>
+  </div>
+
+  <div class="self-only">
+    <div class="callout callout-good">
+      The adapter (<code>dbt-snowflake</code>, <code>dbt-bigquery</code>, etc.) is the bridge between dbt's generic SQL compilation and each platform's specific connection protocol. You install it as a Python package alongside dbt Core, or it's bundled in dbt Cloud.
+    </div>
+  </div>
+
+  <div class="nav-btns">
+    <button class="btn btn-sec" disabled>← Back</button>
+    <button class="btn btn-pri" onclick="go(1)">Next →</button>
+  </div>
+</div>
+
+<!-- ═══ PANEL 2: profiles.yml ═══ -->
+<div class="panel" id="panel-1">
+  <div class="hint self-only">
+    <span class="hint-icon">📄</span>
+    <div><strong>profiles.yml is your local connection file.</strong> It lives at <code>~/.dbt/profiles.yml</code> — outside your project directory — so credentials are never accidentally committed to git. Each profile has named outputs called <em>targets</em>, and <code>target:</code> sets the default.</div>
+  </div>
+  <div class="hint demo-only">
+    <span class="hint-icon">📄</span>
+    <div><strong>~/.dbt/profiles.yml</strong> — lives outside the project, never committed. Has named targets for dev and prod.</div>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-head"><span class="lbl" style="color:#58a6ff">~/.dbt/profiles.yml</span><span class="badge" style="background:rgba(88,166,255,.14);color:#58a6ff">YAML</span></div>
+    <div class="code-body"><pre><span class="hl"><span class="an an-b">my_project:                           # must match "profile:" in dbt_project.yml</span>
+  target: dev                         # which output is active by default</span>
+  outputs:
+
+<span class="gl">    dev:                              # personal development target</span>
+      type: snowflake
+      account: abc123.us-east-1
+      user: jane@company.com
+<span class="wl">      password: "{{ env_var('DBT_PASSWORD') }}"  <span class="an an-w"># never use a literal string here</span></span>
+      role: TRANSFORMER
+<span class="gl">      database: ANALYTICS_DEV         # isolated dev database</span>
+<span class="gl">      schema: dbt_jane                # per-developer schema</span>
+      warehouse: COMPUTE_WH
+      threads: 4
+
+<span class="pl">    prod:                             # production target</span>
+      type: snowflake
+      account: abc123.us-east-1
+<span class="pl">      user: dbt_service_account       # <span class="an an-p">machine identity, not a person</span></span>
+<span class="pl">      private_key_path: /secrets/snowflake_key.p8  <span class="an an-p">key-pair auth for prod</span></span>
+      role: TRANSFORMER_PROD
+<span class="pl">      database: ANALYTICS             # production database</span>
+<span class="pl">      schema: dbt_prod</span>
+      warehouse: COMPUTE_WH_LARGE
+      threads: 8</pre></div>
+  </div>
+
+  <div class="target-row self-only">
+    <div class="target-card" style="border:1px solid rgba(88,166,255,.3)">
+      <div class="tc-name" style="color:#58a6ff">target: dev</div>
+      <div class="tc-desc">Your personal sandbox. Writes to a dev database and your own schema. Uses your credentials.</div>
+    </div>
+    <div class="target-card" style="border:1px solid rgba(210,153,34,.3)">
+      <div class="tc-name" style="color:#d29922">target: ci</div>
+      <div class="tc-desc">Short-lived CI runs. Usually a service account with a throwaway schema that's dropped after tests pass.</div>
+    </div>
+    <div class="target-card" style="border:1px solid rgba(210,168,255,.3)">
+      <div class="tc-name" style="color:#d2a8ff">target: prod</div>
+      <div class="tc-desc">Production runs via a locked-down service account. Writes to the canonical schema that downstream tools query.</div>
+    </div>
+  </div>
+
+  <div class="self-only">
+    <div class="code-wrap">
+      <div class="code-head"><span class="lbl" style="color:#8b949e">dbt_project.yml — linking the project to the profile</span></div>
+      <div class="code-body"><pre>name: my_project
+version: '1.0.0'
+<span class="hl"><span class="an an-b">profile: my_project   # must match the top-level key in profiles.yml</span></span>
+
+model-paths: ["models"]</pre></div>
+    </div>
+  </div>
+
+  <div class="nav-btns">
+    <button class="btn btn-sec" onclick="go(0)">← Back</button>
+    <button class="btn btn-pri" onclick="go(2)">Next →</button>
+  </div>
+</div>
+
+<!-- ═══ PANEL 3: Auth Methods ═══ -->
+<div class="panel" id="panel-2">
+  <div class="hint self-only">
+    <span class="hint-icon">🔐</span>
+    <div><strong>Authentication is how dbt proves identity to the warehouse.</strong> The right method depends on your platform and environment. Click each card to see its config.</div>
+  </div>
+  <div class="hint demo-only">
+    <span class="hint-icon">🔐</span>
+    <div><strong>Four auth methods.</strong> Click each to see the config and when to use it.</div>
+  </div>
+
+  <div class="auth-grid">
+    <div class="auth-card selected" id="auth-0" onclick="selectAuth(0)">
+      <div class="auth-title">Username + Password</div>
+      <div class="auth-sub self-only">Simplest setup. Fine for local dev, not recommended for production.</div>
+      <div class="auth-platforms">
+        <span class="auth-pill">Snowflake</span>
+        <span class="auth-pill">Redshift</span>
+        <span class="auth-pill">Databricks</span>
+      </div>
+    </div>
+    <div class="auth-card" id="auth-1" onclick="selectAuth(1)">
+      <div class="auth-title">Key-Pair Authentication</div>
+      <div class="auth-sub self-only">Private key instead of password. The standard for production Snowflake service accounts.</div>
+      <div class="auth-platforms">
+        <span class="auth-pill">Snowflake</span>
+      </div>
+    </div>
+    <div class="auth-card" id="auth-2" onclick="selectAuth(2)">
+      <div class="auth-title">OAuth / SSO</div>
+      <div class="auth-sub self-only">Token-based auth via your identity provider. No passwords in config files at all.</div>
+      <div class="auth-platforms">
+        <span class="auth-pill">Snowflake</span>
+        <span class="auth-pill">BigQuery</span>
+        <span class="auth-pill">Databricks</span>
+      </div>
+    </div>
+    <div class="auth-card" id="auth-3" onclick="selectAuth(3)">
+      <div class="auth-title">Service Account / Token</div>
+      <div class="auth-sub self-only">Machine identity for CI/CD and production. JSON key file (BigQuery) or personal access token (Databricks).</div>
+      <div class="auth-platforms">
+        <span class="auth-pill">BigQuery</span>
+        <span class="auth-pill">Databricks</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="auth-detail show" id="detail-0">
+    <div class="code-wrap">
+      <div class="code-head"><span class="lbl" style="color:#8b949e">Username + Password</span><span class="badge" style="background:rgba(248,81,73,.14);color:#f85149">avoid in prod</span></div>
+      <div class="code-body"><pre>  type: snowflake
+  user: jane@company.com
+<span class="wl">  password: "{{ env_var('DBT_PASSWORD') }}"   <span class="an an-w"># always use env_var, never a literal</span></span>
+  account: abc123.us-east-1
+  role: TRANSFORMER</pre></div>
+    </div>
+    <div class="callout callout-warn self-only">⚠️ Password auth can't enforce MFA at the service account level and is harder to rotate. Reserve it for local dev only — use key-pair or OAuth for any shared or automated environment.</div>
+  </div>
+
+  <div class="auth-detail" id="detail-1">
+    <div class="code-wrap">
+      <div class="code-head"><span class="lbl" style="color:#3fb950">Key-Pair Authentication</span><span class="badge" style="background:rgba(63,185,80,.14);color:#3fb950">recommended for prod</span></div>
+      <div class="code-body"><pre>  type: snowflake
+  user: dbt_service_account
+<span class="gl">  private_key_path: /secrets/snowflake_rsa_key.p8   <span class="an an-g"># path to the private key</span></span>
+<span class="gl">  private_key_passphrase: "{{ env_var('DBT_KEY_PASSPHRASE') }}"  <span class="an an-g"># if key is encrypted</span></span>
+  account: abc123.us-east-1
+  role: TRANSFORMER_PROD</pre></div>
+    </div>
+    <div class="callout callout-good self-only">✓ Generate a key pair with <code>openssl genrsa</code>, attach the public key to the Snowflake user via <code>ALTER USER ... SET RSA_PUBLIC_KEY='...'</code>, and store the private key in a secrets manager. dbt Cloud handles this securely in its Connections UI.</div>
+  </div>
+
+  <div class="auth-detail" id="detail-2">
+    <div class="code-wrap">
+      <div class="code-head"><span class="lbl" style="color:#58a6ff">OAuth / SSO</span><span class="badge" style="background:rgba(88,166,255,.14);color:#58a6ff">token-based</span></div>
+      <div class="code-body"><pre><span class="hl"><span class="an an-b"># Snowflake — external OAuth or Snowflake OAuth</span></span>
+  type: snowflake
+  authenticator: oauth
+  token: "{{ env_var('DBT_OAUTH_TOKEN') }}"
+  account: abc123.us-east-1
+
+<span class="hl"><span class="an an-b"># BigQuery — Application Default Credentials (ADC)</span></span>
+  type: bigquery
+  method: oauth
+  project: my-gcp-project
+<span class="gl">  # one-time local setup: gcloud auth application-default login</span>
+<span class="gl">  # after that, ADC handles token refresh automatically</span></pre></div>
+    </div>
+  </div>
+
+  <div class="auth-detail" id="detail-3">
+    <div class="code-wrap">
+      <div class="code-head"><span class="lbl" style="color:#d2a8ff">Service Account / Token</span><span class="badge" style="background:rgba(210,168,255,.14);color:#d2a8ff">for CI/CD &amp; prod</span></div>
+      <div class="code-body"><pre><span class="hl"><span class="an an-b"># BigQuery — service account JSON keyfile</span></span>
+  type: bigquery
+  method: service-account
+  project: my-gcp-project
+<span class="pl">  keyfile: /secrets/bq-service-account.json    <span class="an an-p"># path to the JSON key</span></span>
+  dataset: dbt_prod
+
+<span class="hl"><span class="an an-b"># Databricks — personal access token (PAT)</span></span>
+  type: databricks
+  host: abc-123.cloud.databricks.com
+  http_path: /sql/1.0/warehouses/abc123
+<span class="pl">  token: "{{ env_var('DBT_DATABRICKS_TOKEN') }}"  <span class="an an-p"># generate in Databricks UI under User Settings</span></span></pre></div>
+    </div>
+  </div>
+
+  <div class="nav-btns">
+    <button class="btn btn-sec" onclick="go(1)">← Back</button>
+    <button class="btn btn-pri" onclick="go(3)">Next →</button>
+  </div>
+</div>
+
+<!-- ═══ PANEL 4: Platform Adapters ═══ -->
+<div class="panel" id="panel-3">
+  <div class="hint self-only">
+    <span class="hint-icon">🔌</span>
+    <div><strong>Each platform has its own adapter and its own connection fields.</strong> Install the adapter for your warehouse (<code>pip install dbt-snowflake</code>, etc.) alongside dbt Core. The profiles.yml structure is the same, but the fields inside each target differ.</div>
+  </div>
+  <div class="hint demo-only">
+    <span class="hint-icon">🔌</span>
+    <div><strong>Same profiles.yml structure, different fields per platform.</strong> Install the right adapter and configure accordingly.</div>
+  </div>
+
+  <div class="platform-grid">
+    <div class="platform-card sf">
+      <div class="platform-head"><span class="platform-name">Snowflake</span><span class="platform-tag">dbt-snowflake</span></div>
+      <div class="platform-body"><pre>type: snowflake
+account: abc123.us-east-1
+user: jane@company.com
+password: "{{ env_var('...') }}"
+role: TRANSFORMER
+database: ANALYTICS_DEV
+schema: dbt_jane
+warehouse: COMPUTE_WH
+threads: 4</pre></div>
+    </div>
+    <div class="platform-card bq">
+      <div class="platform-head"><span class="platform-name">BigQuery</span><span class="platform-tag">dbt-bigquery</span></div>
+      <div class="platform-body"><pre>type: bigquery
+method: oauth
+project: my-gcp-project
+dataset: dbt_jane
+threads: 4
+timeout_seconds: 300
+location: US
+priority: interactive</pre></div>
+    </div>
+    <div class="platform-card db">
+      <div class="platform-head"><span class="platform-name">Databricks</span><span class="platform-tag">dbt-databricks</span></div>
+      <div class="platform-body"><pre>type: databricks
+host: abc-123.cloud.databricks.com
+http_path: /sql/1.0/warehouses/xyz
+token: "{{ env_var('...') }}"
+catalog: main
+schema: dbt_jane
+threads: 4</pre></div>
+    </div>
+    <div class="platform-card rs">
+      <div class="platform-head"><span class="platform-name">Redshift</span><span class="platform-tag">dbt-redshift</span></div>
+      <div class="platform-body"><pre>type: redshift
+host: abc.us-east-1.redshift.amazonaws.com
+port: 5439
+user: dbt_user
+password: "{{ env_var('...') }}"
+dbname: analytics
+schema: dbt_jane
+threads: 4</pre></div>
+    </div>
+  </div>
+
+  <div class="self-only">
+    <div class="callout callout-good">
+      Key differences: Snowflake uses <code>account</code> + <code>database</code> + <code>schema</code>. BigQuery uses <code>project</code> + <code>dataset</code> (no separate database concept). Databricks uses <code>host</code> + <code>http_path</code> + <code>catalog</code>. Redshift uses a <code>host</code> hostname like a Postgres connection.
+    </div>
+  </div>
+
+  <div class="nav-btns">
+    <button class="btn btn-sec" onclick="go(2)">← Back</button>
+    <button class="btn btn-pri" onclick="go(4)">Next →</button>
+  </div>
+</div>
+
+<!-- ═══ PANEL 5: dbt Cloud ═══ -->
+<div class="panel" id="panel-4">
+  <div class="hint self-only">
+    <span class="hint-icon">☁️</span>
+    <div><strong>dbt Cloud replaces profiles.yml with a UI-based connection model.</strong> Credentials are stored encrypted — never on disk. Each environment (development, production) gets its own connection config, and developer credentials are set per-user in their Profile settings.</div>
+  </div>
+  <div class="hint demo-only">
+    <span class="hint-icon">☁️</span>
+    <div><strong>No profiles.yml in dbt Cloud.</strong> Connections live in the UI. Dev and prod use the same platform config but different credentials.</div>
+  </div>
+
+  <div class="compare-row">
+    <div class="compare-block core">
+      <h4>dbt Core (local)</h4>
+      <div class="check-row"><span class="ci">📄</span><div>Connection lives in <strong>~/.dbt/profiles.yml</strong> on your machine</div></div>
+      <div class="check-row"><span class="ci">🔑</span><div>You manage secrets via <strong>env vars or a secrets manager</strong></div></div>
+      <div class="check-row"><span class="ci">👤</span><div>Each developer configures their <strong>own local profile</strong></div></div>
+      <div class="check-row"><span class="ci">⚙️</span><div>Production runs via CI/CD, passing env vars at job runtime</div></div>
+    </div>
+    <div class="compare-block cloud">
+      <h4>dbt Cloud</h4>
+      <div class="check-row"><span class="ci">🖥️</span><div>Connection configured in <strong>Project → Connections</strong> in the UI</div></div>
+      <div class="check-row"><span class="ci">🔒</span><div>Credentials stored <strong>encrypted in dbt Cloud</strong> — never written to disk</div></div>
+      <div class="check-row"><span class="ci">👥</span><div><strong>Per-developer credentials</strong> set in each user's Profile settings</div></div>
+      <div class="check-row"><span class="ci">🚀</span><div>Production credentials attached to the <strong>deployment environment</strong> — not the project</div></div>
+    </div>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-head"><span class="lbl" style="color:#3fb950">dbt Cloud environment model</span></div>
+    <div class="code-body"><pre><span class="gl">Development Environment</span>
+  Connection:  Snowflake (shared — account, role, warehouse)
+<span class="gl">  Credentials: per-developer OAuth or username/password (set in Profile → Credentials)</span>
+  Schema:      dbt_&lt;username&gt;   ← automatically namespaced per developer
+
+<span class="pl">Deployment Environment (Production)</span>
+  Connection:  Snowflake (same shared config)
+<span class="pl">  Credentials: service account key-pair (set in Environment → Connection settings)</span>
+  Schema:      dbt_prod
+
+<span class="hl">Both environments share the same Connection object (host / account / warehouse / role).</span>
+<span class="hl">What differs: who is authenticating, and where models are written.</span></pre></div>
+  </div>
+
+  <div class="nav-btns">
+    <button class="btn btn-sec" onclick="go(3)">← Back</button>
+    <button class="btn btn-pri" onclick="go(5)">Next →</button>
+  </div>
+</div>
+
+<!-- ═══ PANEL 6: Best Practices ═══ -->
+<div class="panel" id="panel-5">
+  <div class="hint self-only">
+    <span class="hint-icon">✅</span>
+    <div><strong>A few rules that prevent credential disasters and environment bleed.</strong></div>
+  </div>
+  <div class="hint demo-only">
+    <span class="hint-icon">✅</span>
+    <div><strong>The connection rules that matter most in practice.</strong></div>
+  </div>
+
+  <div class="bp-list">
+    <div class="bp-item warn">
+      <div class="bp-icon">🚫</div>
+      <div>
+        <div class="bp-title">Never commit credentials to git</div>
+        <div class="bp-desc self-only">profiles.yml lives at <code>~/.dbt/</code>, outside your project root, for exactly this reason. If you use a <code>.env</code> file for local variables, add it to <code>.gitignore</code> before anything else.</div>
+      </div>
+    </div>
+    <div class="bp-item good">
+      <div class="bp-icon">✅</div>
+      <div>
+        <div class="bp-title">Use env_var() for every secret</div>
+        <div class="bp-desc self-only">Wrap all secrets in <code>{{ env_var('VAR_NAME') }}</code>. dbt throws a clear error if the variable is missing — better than silently using a wrong or empty value.</div>
+      </div>
+    </div>
+    <div class="bp-item good">
+      <div class="bp-icon">✅</div>
+      <div>
+        <div class="bp-title">Give each developer their own schema</div>
+        <div class="bp-desc self-only">Set <code>schema: dbt_{{ env_var('DBT_USER') }}</code> in your dev target. This prevents developers from overwriting each other's models during active development.</div>
+      </div>
+    </div>
+    <div class="bp-item good">
+      <div class="bp-icon">✅</div>
+      <div>
+        <div class="bp-title">Use key-pair auth or OAuth for production</div>
+        <div class="bp-desc self-only">Password-based service accounts can't enforce MFA and are harder to rotate. Key-pair (Snowflake) and service accounts / ADC (BigQuery, Databricks) are the production standard.</div>
+      </div>
+    </div>
+    <div class="bp-item good">
+      <div class="bp-icon">✅</div>
+      <div>
+        <div class="bp-title">Separate dev and prod databases, not just schemas</div>
+        <div class="bp-desc self-only">Use <code>ANALYTICS_DEV</code> for development and <code>ANALYTICS</code> for production. This makes it physically impossible to overwrite production data with a local <code>dbt run</code>.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-btns">
+    <button class="btn btn-sec" onclick="go(4)">← Back</button>
+    <button class="btn btn-pri" disabled>Done ✓</button>
+  </div>
+</div>
+
+</div>
+<script>
+let cur = 0;
+function go(i) {
+  document.querySelectorAll('.panel').forEach((p,j) => p.classList.toggle('active', j===i));
+  document.querySelectorAll('.nav-step').forEach((s,j) => {
+    s.classList.remove('active','done');
+    if (j===i) s.classList.add('active');
+    else if (j<i) s.classList.add('done');
+  });
+  cur = i;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function selectAuth(i) {
+  document.querySelectorAll('.auth-card').forEach((c,j) => c.classList.toggle('selected', j===i));
+  document.querySelectorAll('.auth-detail').forEach((d,j) => d.classList.toggle('show', j===i));
+}
+function setMode(m) {
+  document.body.classList.toggle('demo-mode', m==='demo');
+  document.getElementById('btn-self').classList.toggle('active', m==='self');
+  document.getElementById('btn-demo').classList.toggle('active', m==='demo');
+}
+</script>
+</body>
+</html>

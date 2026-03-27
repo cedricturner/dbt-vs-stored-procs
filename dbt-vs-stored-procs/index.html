@@ -472,7 +472,7 @@ $$ <span style="color:#ff7b72">LANGUAGE</span> plpgsql;</pre>
       <div class="bar-row"><span class="bar-lbl">step 3</span><div class="bar-track"><div class="bar-fill" style="width:20%;background:#d29922;left:40%">stg_pay</div></div></div>
       <div class="bar-row"><span class="bar-lbl">step 4</span><div class="bar-track"><div class="bar-fill" style="width:25%;background:#d29922;left:60%">int_orders</div></div></div>
       <div class="bar-row"><span class="bar-lbl">step 5</span><div class="bar-track"><div class="bar-fill" style="width:15%;background:#3fb950;left:85%">fct_summary</div></div></div>
-      <div style="margin-top:10px;font-size:11px;color:#8b949e">Total wall time: <strong style="color:#f85149">5 units</strong></div>
+      <div style="margin-top:10px;font-size:11px;color:#8b949e">Execution time: <strong style="color:#f85149">5 units</strong></div>
     </div>
     <div class="par-block">
       <h4>✅ dbt — parallel (3 threads)</h4>
@@ -481,7 +481,7 @@ $$ <span style="color:#ff7b72">LANGUAGE</span> plpgsql;</pre>
       <div class="bar-row"><span class="bar-lbl">thread 3</span><div class="bar-track"><div class="bar-fill" style="width:20%;background:#d29922;left:0%">stg_pay</div></div></div>
       <div class="bar-row"><span class="bar-lbl">thread 1</span><div class="bar-track"><div class="bar-fill" style="width:25%;background:#d29922;left:20%">int_orders</div></div></div>
       <div class="bar-row"><span class="bar-lbl">thread 1</span><div class="bar-track"><div class="bar-fill" style="width:15%;background:#3fb950;left:45%">fct_summary</div></div></div>
-      <div style="margin-top:10px;font-size:11px;color:#8b949e">Total wall time: <strong style="color:#3fb950">~3.5 units</strong> — same result</div>
+      <div style="margin-top:10px;font-size:11px;color:#8b949e">Execution time: <strong style="color:#3fb950">3 units</strong></div>
     </div>
   </div>
 

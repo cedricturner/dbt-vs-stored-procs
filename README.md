@@ -10,6 +10,7 @@ Hands-on, self-serve explainers for understanding how dbt works. Each walkthroug
 |---|---|---|
 | [dbt vs Stored Procedures](./dbt-vs-stored-procs/) | Data Modeling | How dbt transforms a tangled stored procedure into clean, testable, modular SQL |
 | [dbt Connection Modes](./dbt-connection-modes/) | Infrastructure | How dbt authenticates and connects to your data platform — from profiles.yml to dbt Cloud |
+| [dbt + AI — Conversational Analytics](./dbt-ai-llm/) | AI & LLMs | How LLMs plug into the dbt Semantic Layer to power natural language queries over your data |
 
 ## Structure
 ```
@@ -17,7 +18,9 @@ dbt-artifacts/
 ├── index.html                    # landing hub
 ├── dbt-vs-stored-procs/
 │   └── index.html
-└── dbt-connection-modes/
+├── dbt-connection-modes/
+│   └── index.html
+└── dbt-ai-llm/
     └── index.html
 ```
 

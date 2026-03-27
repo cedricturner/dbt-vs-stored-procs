@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>dbt + AI — Conversational Analytics</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0e1117;--surface:#161b22;--raised:#1c2129;--border:#2d333b;
+  --text:#e6edf3;--muted:#8b949e;
+  --purple:#7c3aed;--pl:#a78bfa;--pdim:rgba(124,58,237,.12);
+  --green:#3fb950;--blue:#58a6ff;--amber:#d29922;--red:#f85149;--orange:#ff6b35;
+  --mono:'JetBrains Mono',monospace;--sans:'DM Sans',sans-serif;
+}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh}
+.app{max-width:1000px;margin:0 auto;padding:24px 20px 80px}
+.hdr{text-align:center;margin-bottom:24px}
+.hdr-tag{display:inline-block;font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--pl);background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.2);padding:4px 13px;border-radius:99px;margin-bottom:10px}
+.hdr h1{font-size:clamp(20px,3.5vw,30px);font-weight:600;color:#fff;margin-bottom:5px}
+.hdr p{color:var(--muted);font-size:13px}
+.nav{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:5px;gap:3px;margin-bottom:20px;flex-wrap:wrap}
+.ns{flex:1;min-width:60px;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;border-radius:8px;cursor:pointer;border:none;background:transparent;color:var(--muted);transition:all .2s;font-family:var(--sans)}
+.ns:hover{background:var(--raised);color:var(--text)}
+.ns.on{background:var(--purple);color:#fff}
+.ns-n{font-family:var(--mono);font-size:9px;opacity:.6}
+.ns-l{font-size:11px;font-weight:500;text-align:center;line-height:1.2}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px}
+.card-title{font-size:15px;font-weight:600;color:#fff;margin-bottom:4px}
+.card-sub{font-size:12px;color:var(--muted);margin-bottom:18px}
+.ctrls{display:flex;justify-content:space-between;align-items:center;margin-top:18px}
+.nbtn{padding:9px 20px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;transition:all .2s}
+.nbtn:hover:not(:disabled){border-color:var(--purple);color:var(--pl)}
+.nbtn:disabled{opacity:.3;cursor:default}
+.nbtn.pri{background:var(--purple);border-color:var(--purple);color:#fff}
+.nbtn.pri:hover:not(:disabled){background:#6d28d9}
+.prog{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.cap{font-size:12px;color:var(--muted);line-height:1.6;margin-top:14px;padding:10px 12px;background:var(--raised);border-radius:8px;border:1px solid var(--border)}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="hdr">
+  <div class="hdr-tag">dbt Labs · AI / LLM</div>
+  <h1>From Data to Conversation</h1>
+  <p>How dbt connects your warehouse to AI agents — with the same trust layer that powers your BI tools.</p>
+</div>
+<div class="nav" id="snav"></div>
+<div id="scontent"></div>
+<div class="ctrls">
+  <button class="nbtn" id="pb" onclick="nav(-1)">← Back</button>
+  <span class="prog" id="pg"></span>
+  <button class="nbtn pri" id="nb" onclick="nav(1)">Next →</button>
+</div>
+</div>
+
+<script>
+var cur = 0;
+
+/* ─── STEP RENDERERS ─────────────────────────────────────── */
+
+function renderStep0() {
+  return `<div class="card">
+  <div class="card-title">Dashboard vs. Conversation</div>
+  <div class="card-sub">Same data, same metrics — different interface.</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+
+    <!-- BI side -->
+    <div style="background:var(--raised);border:1px solid var(--border);border-radius:10px;overflow:hidden">
+      <div style="padding:9px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px">
+        <span style="width:8px;height:8px;border-radius:50%;background:var(--blue);display:inline-block;flex-shrink:0"></span>
+        <span style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px">BI DASHBOARD</span>
+      </div>
+      <div style="padding:14px;display:flex;flex-direction:column;gap:10px">
+        <!-- KPI row -->
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+          <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px">
+            <div style="font-size:20px;font-weight:600;font-family:var(--mono);color:var(--blue)">$12M</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:2px">Revenue</div>
+            <div style="font-size:10px;color:var(--green);margin-top:3px">↑ 11.8% YoY</div>
+          </div>
+          <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px">
+            <div style="font-size:20px;font-weight:600;font-family:var(--mono);color:var(--green)">42K</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:2px">Active Users</div>
+            <div style="font-size:10px;color:var(--green);margin-top:3px">↑ 6.2%</div>
+          </div>
+          <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px">
+            <div style="font-size:20px;font-weight:600;font-family:var(--mono);color:var(--red)">3.1%</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:2px">Churn Rate</div>
+            <div style="font-size:10px;color:var(--red);margin-top:3px">↑ 0.3pp</div>
+          </div>
+        </div>
+        <!-- Bar chart -->
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px">
+          <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-bottom:12px;letter-spacing:1px">REVENUE BY REGION · Q4</div>
+          <div style="display:flex;align-items:flex-end;gap:10px;height:80px;padding:0 4px">
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%">
+              <div style="flex:1;display:flex;align-items:flex-end;width:100%">
+                <div style="width:100%;height:76%;background:linear-gradient(180deg,rgba(88,166,255,.8),rgba(88,166,255,.4));border-radius:3px 3px 0 0"></div>
+              </div>
+              <div style="font-size:9px;color:var(--muted)">North</div>
+              <div style="font-family:var(--mono);font-size:9px;color:var(--blue)">$4.2M</div>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%">
+              <div style="flex:1;display:flex;align-items:flex-end;width:100%">
+                <div style="width:100%;height:55%;background:linear-gradient(180deg,rgba(88,166,255,.7),rgba(88,166,255,.3));border-radius:3px 3px 0 0"></div>
+              </div>
+              <div style="font-size:9px;color:var(--muted)">West</div>
+              <div style="font-family:var(--mono);font-size:9px;color:var(--blue)">$3.1M</div>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%">
+              <div style="flex:1;display:flex;align-items:flex-end;width:100%">
+                <div style="width:100%;height:45%;background:linear-gradient(180deg,rgba(88,166,255,.6),rgba(88,166,255,.25));border-radius:3px 3px 0 0"></div>
+              </div>
+              <div style="font-size:9px;color:var(--muted)">South</div>
+              <div style="font-family:var(--mono);font-size:9px;color:var(--blue)">$2.8M</div>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%">
+              <div style="flex:1;display:flex;align-items:flex-end;width:100%">
+                <div style="width:100%;height:30%;background:linear-gradient(180deg,rgba(88,166,255,.5),rgba(88,166,255,.2));border-radius:3px 3px 0 0"></div>
+              </div>
+              <div style="font-size:9px;color:var(--muted)">East</div>
+              <div style="font-family:var(--mono);font-size:9px;color:var(--blue)">$1.9M</div>
+            </div>
+          </div>
+        </div>
+        <!-- Second chart: trend line mock -->
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px">
+          <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-bottom:10px;letter-spacing:1px">REVENUE TREND · 6 MONTHS</div>
+          <svg viewBox="0 0 260 60" style="width:100%;display:block">
+            <polyline points="0,50 52,42 104,35 156,28 208,20 260,15" fill="none" stroke="rgba(88,166,255,.6)" stroke-width="2"/>
+            <polyline points="0,50 52,42 104,35 156,28 208,20 260,15" fill="url(#tg)" stroke="none"/>
+            <defs><linearGradient id="tg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(88,166,255,.2)"/><stop offset="100%" stop-color="rgba(88,166,255,0)"/></linearGradient></defs>
+            <path d="M0,50 52,42 104,35 156,28 208,20 260,15 V60 H0Z" fill="url(#tg)"/>
+            ${['Jul','Aug','Sep','Oct','Nov','Dec'].map((m,i)=>`<text x="${i*52}" y="58" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="7" text-anchor="middle">${m}</text>`).join('')}
+          </svg>
+        </div>
+        <div style="font-size:10px;color:var(--muted);text-align:center;padding:6px;background:var(--bg);border:1px dashed var(--border);border-radius:6px">Pre-built views · fixed filters · need analyst to go deeper</div>
+      </div>
+    </div>
+
+    <!-- AI side -->
+    <div style="background:var(--raised);border:1px solid var(--border);border-radius:10px;overflow:hidden;display:flex;flex-direction:column">
+      <div style="padding:9px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px">
+        <span style="width:8px;height:8px;border-radius:50%;background:var(--purple);display:inline-block;flex-shrink:0"></span>
+        <span style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px">AI AGENT</span>
+      </div>
+      <div style="padding:14px;flex:1;display:flex;flex-direction:column;gap:8px;overflow-y:auto">
+        <div style="align-self:flex-end;max-width:88%;padding:9px 12px;border-radius:10px;font-size:12px;line-height:1.5;background:rgba(124,58,237,.18);border:1px solid rgba(124,58,237,.3);color:#c4b5fd">What drove East region's growth last quarter?</div>
+        <div style="align-self:flex-start;max-width:92%;padding:9px 12px;border-radius:10px;font-size:12px;line-height:1.5;background:var(--bg);border:1px solid var(--border)">
+          <span style="display:block;font-family:var(--mono);font-size:10px;color:var(--pl);background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.2);border-radius:4px;padding:3px 7px;margin-bottom:5px">→ query_metrics(revenue, group_by=[region, channel])</span>
+          <span style="display:block;font-family:var(--mono);font-size:10px;color:var(--green);background:rgba(63,185,80,.06);border:1px solid rgba(63,185,80,.15);border-radius:4px;padding:3px 7px;margin-bottom:6px">← East: $1.9M · Digital channel +34%</span>
+          East growth was almost entirely digital — up 34% QoQ. New customer acquisition, not expansion.
+        </div>
+        <div style="align-self:flex-end;max-width:88%;padding:9px 12px;border-radius:10px;font-size:12px;line-height:1.5;background:rgba(124,58,237,.18);border:1px solid rgba(124,58,237,.3);color:#c4b5fd">Is CAC holding up or are we buying that growth?</div>
+        <div style="align-self:flex-start;max-width:92%;padding:9px 12px;border-radius:10px;font-size:12px;line-height:1.5;background:var(--bg);border:1px solid var(--border)">
+          <span style="display:block;font-family:var(--mono);font-size:10px;color:var(--pl);background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.2);border-radius:4px;padding:3px 7px;margin-bottom:5px">→ query_metrics(cac, region=East, group_by=[month])</span>
+          <span style="display:block;font-family:var(--mono);font-size:10px;color:var(--green);background:rgba(63,185,80,.06);border:1px solid rgba(63,185,80,.15);border-radius:4px;padding:3px 7px;margin-bottom:6px">← CAC up 18% · payback period now 14mo</span>
+          CAC climbed 18% while revenue grew 34% — efficient for now, but payback is stretching. Worth watching in Q1.
+        </div>
+      </div>
+      <div style="font-size:10px;color:var(--green);text-align:center;padding:7px;border-top:1px solid var(--border);background:rgba(63,185,80,.04)">Governed metrics · follows the thread · no ticket required</div>
+    </div>
+  </div>
+  <div class="cap">The dashboard answers the question you thought to ask. The agent follows the one you're actually asking — and keeps going. Same underlying dbt metrics, same definitions. The interface is what changes.</div>
+</div>`;
+}
+
+function renderStep1() {
+  return `<div class="card">
+  <div class="card-title">How data flows — source to AI</div>
+  <div class="card-sub">dbt sits in the middle. The Semantic Layer is the shared interface for BI tools and AI agents alike.</div>
+  <div style="background:var(--raised);border:1px solid var(--border);border-radius:10px;padding:16px;overflow-x:auto">
+    <svg viewBox="0 0 900 360" xmlns="http://www.w3.org/2000/svg" style="width:100%;min-width:640px;display:block">
+      <defs>
+        <marker id="a0" viewBox="0 0 10 7" refX="9" refY="3.5" markerWidth="6" markerHeight="5" orient="auto"><path d="M0 0 L10 3.5 L0 7z" fill="#444c56"/></marker>
+        <marker id="ap" viewBox="0 0 10 7" refX="9" refY="3.5" markerWidth="6" markerHeight="5" orient="auto"><path d="M0 0 L10 3.5 L0 7z" fill="#7c3aed"/></marker>
+        <marker id="ag" viewBox="0 0 10 7" refX="9" refY="3.5" markerWidth="6" markerHeight="5" orient="auto"><path d="M0 0 L10 3.5 L0 7z" fill="#3fb950"/></marker>
+        <marker id="aa" viewBox="0 0 10 7" refX="9" refY="3.5" markerWidth="6" markerHeight="5" orient="auto"><path d="M0 0 L10 3.5 L0 7z" fill="#d29922"/></marker>
+      </defs>
+
+      <!-- column headers -->
+      <text x="68" y="18" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="8.5" font-weight="600" text-anchor="middle" letter-spacing="1">SOURCES</text>
+      <text x="195" y="18" fill="#58a6ff" font-family="JetBrains Mono,monospace" font-size="8.5" font-weight="600" text-anchor="middle" letter-spacing="1">INGEST</text>
+      <text x="390" y="18" fill="#ff6b35" font-family="JetBrains Mono,monospace" font-size="8.5" font-weight="600" text-anchor="middle" letter-spacing="1">dbt PLATFORM</text>
+      <text x="614" y="18" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="8.5" font-weight="600" text-anchor="middle" letter-spacing="1">SEMANTIC LAYER + MCP</text>
+      <text x="820" y="18" fill="#d29922" font-family="JetBrains Mono,monospace" font-size="8.5" font-weight="600" text-anchor="middle" letter-spacing="1">CONSUMERS</text>
+
+      <!-- dividers -->
+      <line x1="130" y1="26" x2="130" y2="355" stroke="#2d333b" stroke-width="1" stroke-dasharray="3,5"/>
+      <line x1="258" y1="26" x2="258" y2="355" stroke="#2d333b" stroke-width="1" stroke-dasharray="3,5"/>
+      <line x1="500" y1="26" x2="500" y2="355" stroke="#2d333b" stroke-width="1" stroke-dasharray="3,5"/>
+      <line x1="720" y1="26" x2="720" y2="355" stroke="#2d333b" stroke-width="1" stroke-dasharray="3,5"/>
+
+      <!-- SOURCE NODES -->
+      <rect x="8" y="50" width="112" height="34" rx="5" fill="#1c2129" stroke="#444c56" stroke-width="1.5"/>
+      <text x="64" y="63" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="8" text-anchor="middle">Apps / APIs</text>
+      <text x="64" y="76" fill="#e6edf3" font-family="JetBrains Mono,monospace" font-size="8.5" font-weight="600" text-anchor="middle">Event Streams</text>
+
+      <rect x="8" y="100" width="112" height="34" rx="5" fill="#1c2129" stroke="#444c56" stroke-width="1.5"/>
+      <text x="64" y="113" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="8" text-anchor="middle">CRM / ERP</text>
+      <text x="64" y="126" fill="#e6edf3" font-family="JetBrains Mono,monospace" font-size="8.5" font-weight="600" text-anchor="middle">Databases</text>
+
+      <rect x="8" y="150" width="112" height="34" rx="5" fill="#1c2129" stroke="#444c56" stroke-width="1.5"/>
+      <text x="64" y="163" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="8" text-anchor="middle">S3 / GCS</text>
+      <text x="64" y="176" fill="#e6edf3" font-family="JetBrains Mono,monospace" font-size="8.5" font-weight="600" text-anchor="middle">Object Store</text>
+
+      <!-- source → ingest arrows (to center of ingest box) -->
+      <path d="M120 67 L158 110" stroke="#444c56" stroke-width="1.5" fill="none" marker-end="url(#a0)"/>
+      <path d="M120 117 L158 120" stroke="#444c56" stroke-width="1.5" fill="none" marker-end="url(#a0)"/>
+      <path d="M120 167 L158 130" stroke="#444c56" stroke-width="1.5" fill="none" marker-end="url(#a0)"/>
+
+      <!-- INGEST -->
+      <rect x="138" y="90" width="106" height="60" rx="7" fill="rgba(88,166,255,.07)" stroke="#58a6ff" stroke-width="1.5"/>
+      <text x="191" y="112" fill="#58a6ff" font-family="JetBrains Mono,monospace" font-size="9.5" font-weight="600" text-anchor="middle">Fivetran</text>
+      <text x="191" y="125" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="8" text-anchor="middle">Airbyte · Kafka</text>
+      <text x="191" y="138" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="8" text-anchor="middle">Confluent</text>
+
+      <!-- ingest → raw -->
+      <path d="M244 120 L275 120" stroke="#58a6ff" stroke-width="1.5" fill="none" marker-end="url(#a0)" opacity=".7"/>
+
+      <!-- dbt PLATFORM BOX -->
+      <rect x="264" y="35" width="226" height="290" rx="8" fill="rgba(255,107,53,.03)" stroke="#ff6b35" stroke-width="1.5" stroke-dasharray="4,3"/>
+      <text x="377" y="52" fill="#ff6b35" font-family="JetBrains Mono,monospace" font-size="8" font-weight="600" text-anchor="middle" letter-spacing="1.5">dbt PLATFORM</text>
+
+      <!-- RAW -->
+      <rect x="274" y="58" width="206" height="36" rx="6" fill="#1c2129" stroke="#444c56" stroke-width="1.5"/>
+      <text x="377" y="73" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="8" text-anchor="middle">Snowflake · BigQuery · Databricks</text>
+      <text x="377" y="86" fill="#e6edf3" font-family="JetBrains Mono,monospace" font-size="9.5" font-weight="600" text-anchor="middle">Raw Data</text>
+
+      <path d="M377 94 L377 114" stroke="#ff6b35" stroke-width="1.5" fill="none" marker-end="url(#a0)" opacity=".6"/>
+      <text x="392" y="109" fill="#ff6b35" font-family="JetBrains Mono,monospace" font-size="7.5">dbt run</text>
+
+      <!-- STAGING -->
+      <rect x="274" y="114" width="206" height="34" rx="6" fill="rgba(88,166,255,.07)" stroke="#58a6ff" stroke-width="1.5"/>
+      <text x="377" y="128" fill="#58a6ff" font-family="JetBrains Mono,monospace" font-size="9.5" font-weight="600" text-anchor="middle">Staging</text>
+      <text x="377" y="141" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="8" text-anchor="middle">type · rename · deduplicate</text>
+
+      <path d="M377 148 L377 168" stroke="#ff6b35" stroke-width="1.5" fill="none" marker-end="url(#a0)" opacity=".6"/>
+
+      <!-- INTERMEDIATE -->
+      <rect x="274" y="168" width="206" height="34" rx="6" fill="rgba(210,153,34,.06)" stroke="#d29922" stroke-width="1.2"/>
+      <text x="377" y="182" fill="#d29922" font-family="JetBrains Mono,monospace" font-size="9.5" font-weight="600" text-anchor="middle">Intermediate</text>
+      <text x="377" y="195" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="8" text-anchor="middle">business logic · joins</text>
+
+      <path d="M377 202 L377 222" stroke="#ff6b35" stroke-width="1.5" fill="none" marker-end="url(#a0)" opacity=".6"/>
+
+      <!-- MARTS -->
+      <rect x="274" y="222" width="206" height="34" rx="6" fill="rgba(63,185,80,.07)" stroke="#3fb950" stroke-width="1.5"/>
+      <text x="377" y="236" fill="#3fb950" font-family="JetBrains Mono,monospace" font-size="9.5" font-weight="600" text-anchor="middle">Marts (Gold)</text>
+      <text x="377" y="249" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="8" text-anchor="middle">tested · documented · trusted</text>
+
+      <!-- badges -->
+      <rect x="278" y="264" width="70" height="18" rx="4" fill="rgba(63,185,80,.1)" stroke="rgba(63,185,80,.3)" stroke-width="1"/>
+      <text x="313" y="276" fill="#3fb950" font-family="JetBrains Mono,monospace" font-size="7.5" text-anchor="middle">tests pass</text>
+      <rect x="356" y="264" width="70" height="18" rx="4" fill="rgba(88,166,255,.1)" stroke="rgba(88,166,255,.3)" stroke-width="1"/>
+      <text x="391" y="276" fill="#58a6ff" font-family="JetBrains Mono,monospace" font-size="7.5" text-anchor="middle">docs + lineage</text>
+
+      <!-- marts → semantic layer -->
+      <path d="M490 239 L516 220" stroke="#7c3aed" stroke-width="2" fill="none" marker-end="url(#ap)"/>
+
+      <!-- SEMANTIC LAYER -->
+      <rect x="510" y="175" width="196" height="90" rx="8" fill="rgba(124,58,237,.09)" stroke="#7c3aed" stroke-width="2"/>
+      <text x="608" y="197" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="10" font-weight="600" text-anchor="middle">Semantic Layer</text>
+      <text x="608" y="211" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="8" text-anchor="middle">metrics · dimensions · entities</text>
+      <line x1="520" y1="218" x2="696" y2="218" stroke="#3d2d6b" stroke-width="1"/>
+      <text x="608" y="231" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="8" text-anchor="middle">defined once in YAML</text>
+      <text x="608" y="245" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="8" text-anchor="middle">SQL generated at query time</text>
+      <text x="608" y="258" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="8" text-anchor="middle">MetricFlow</text>
+
+      <!-- MCP SERVER -->
+      <rect x="510" y="280" width="196" height="36" rx="7" fill="rgba(63,185,80,.07)" stroke="#3fb950" stroke-width="1.5"/>
+      <text x="608" y="296" fill="#3fb950" font-family="JetBrains Mono,monospace" font-size="10" font-weight="600" text-anchor="middle">dbt MCP Server</text>
+      <text x="608" y="308" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="8" text-anchor="middle">query_metrics · get_lineage · list_models</text>
+
+      <!-- sem → mcp -->
+      <path d="M608 265 L608 277" stroke="#3fb950" stroke-width="1.5" fill="none" marker-end="url(#ag)" opacity=".8"/>
+
+      <!-- CONSUMERS -->
+      <!-- BI Tools -->
+      <rect x="730" y="120" width="156" height="38" rx="7" fill="#1c2129" stroke="#444c56" stroke-width="1.5"/>
+      <text x="808" y="136" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="8" text-anchor="middle">Tableau · Power BI · Sigma</text>
+      <text x="808" y="149" fill="#e6edf3" font-family="JetBrains Mono,monospace" font-size="9.5" font-weight="600" text-anchor="middle">BI Tools</text>
+
+      <!-- AI Agents -->
+      <rect x="730" y="175" width="156" height="38" rx="7" fill="rgba(210,153,34,.09)" stroke="#d29922" stroke-width="2"/>
+      <text x="808" y="191" fill="#d29922" font-family="JetBrains Mono,monospace" font-size="8" text-anchor="middle">Claude · GPT-4 · Gemini</text>
+      <text x="808" y="204" fill="#e6edf3" font-family="JetBrains Mono,monospace" font-size="9.5" font-weight="600" text-anchor="middle">AI Agents / LLMs</text>
+
+      <!-- Downstream -->
+      <rect x="730" y="230" width="156" height="38" rx="7" fill="#1c2129" stroke="#444c56" stroke-width="1.5"/>
+      <text x="808" y="246" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="8" text-anchor="middle">Slack · Embedded apps</text>
+      <text x="808" y="259" fill="#e6edf3" font-family="JetBrains Mono,monospace" font-size="9.5" font-weight="600" text-anchor="middle">Downstream Apps</text>
+
+      <!-- sem → BI -->
+      <path d="M706 204 L727 146" stroke="#444c56" stroke-width="1.5" fill="none" marker-end="url(#a0)" opacity=".6"/>
+      <!-- sem → AI (highlighted) -->
+      <path d="M706 215 L727 194" stroke="#d29922" stroke-width="2" fill="none" marker-end="url(#aa)"/>
+      <!-- mcp → AI -->
+      <path d="M706 295 L740 216" stroke="#d29922" stroke-width="1.5" fill="none" marker-end="url(#aa)" stroke-dasharray="4,3" opacity=".8"/>
+      <!-- mcp → Downstream -->
+      <path d="M706 298 L727 248" stroke="#444c56" stroke-width="1.5" fill="none" marker-end="url(#a0)" opacity=".6"/>
+    </svg>
+  </div>
+  <div class="cap">The Semantic Layer is the shared contract between BI tools and AI agents. Both query the same metric definitions — nothing new gets materialized for AI. The MCP Server exposes dbt's catalog, lineage, and query APIs as callable tools so agents can reason about your data before querying it.</div>
+</div>`;
+}
+
+function renderStep2() {
+  return `<div class="card">
+  <div class="card-title">How the Semantic Layer is built</div>
+  <div class="card-sub">Mart model → Semantic model (entities + dimensions) → Metrics</div>
+  <div style="overflow-x:auto">
+    <svg viewBox="0 0 800 330" xmlns="http://www.w3.org/2000/svg" style="width:100%;min-width:580px;display:block">
+      <defs>
+        <marker id="sa" viewBox="0 0 10 7" refX="9" refY="3.5" markerWidth="6" markerHeight="5" orient="auto"><path d="M0 0 L10 3.5 L0 7z" fill="#444c56"/></marker>
+        <marker id="sp" viewBox="0 0 10 7" refX="9" refY="3.5" markerWidth="6" markerHeight="5" orient="auto"><path d="M0 0 L10 3.5 L0 7z" fill="#7c3aed"/></marker>
+      </defs>
+
+      <!-- MART MODEL -->
+      <rect x="12" y="40" width="160" height="198" rx="8" fill="rgba(63,185,80,.07)" stroke="#3fb950" stroke-width="1.5"/>
+      <text x="92" y="60" fill="#3fb950" font-family="JetBrains Mono,monospace" font-size="10" font-weight="600" text-anchor="middle">fct_orders</text>
+      <text x="92" y="73" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="8" text-anchor="middle">mart model</text>
+      <line x1="20" y1="80" x2="164" y2="80" stroke="#2d333b" stroke-width="1"/>
+      <!-- columns -->
+      <text x="24" y="97" fill="#e6edf3" font-family="JetBrains Mono,monospace" font-size="8.5">order_id</text>
+      <text x="163" y="97" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="7.5" text-anchor="end">PK</text>
+      <text x="24" y="115" fill="#e6edf3" font-family="JetBrains Mono,monospace" font-size="8.5">customer_id</text>
+      <text x="163" y="115" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="7.5" text-anchor="end">FK</text>
+      <text x="24" y="133" fill="#e6edf3" font-family="JetBrains Mono,monospace" font-size="8.5">order_total</text>
+      <text x="163" y="133" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="7.5" text-anchor="end">decimal</text>
+      <text x="24" y="151" fill="#e6edf3" font-family="JetBrains Mono,monospace" font-size="8.5">region</text>
+      <text x="163" y="151" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="7.5" text-anchor="end">varchar</text>
+      <text x="24" y="169" fill="#e6edf3" font-family="JetBrains Mono,monospace" font-size="8.5">channel</text>
+      <text x="163" y="169" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="7.5" text-anchor="end">varchar</text>
+      <text x="24" y="187" fill="#e6edf3" font-family="JetBrains Mono,monospace" font-size="8.5">ordered_at</text>
+      <text x="163" y="187" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="7.5" text-anchor="end">timestamp</text>
+      <text x="24" y="205" fill="#e6edf3" font-family="JetBrains Mono,monospace" font-size="8.5">status</text>
+      <text x="163" y="205" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="7.5" text-anchor="end">varchar</text>
+      <text x="24" y="225" fill="#e6edf3" font-family="JetBrains Mono,monospace" font-size="8.5" opacity=".4">...</text>
+
+      <!-- mart → sem model -->
+      <path d="M172 139 L226 139" stroke="#7c3aed" stroke-width="2" fill="none" marker-end="url(#sp)"/>
+      <text x="199" y="131" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="7.5" text-anchor="middle">built on</text>
+
+      <!-- SEMANTIC MODEL -->
+      <rect x="226" y="30" width="184" height="248" rx="8" fill="rgba(124,58,237,.08)" stroke="#7c3aed" stroke-width="2"/>
+      <text x="318" y="50" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="10" font-weight="600" text-anchor="middle">sem_orders</text>
+      <text x="318" y="63" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="8" text-anchor="middle">semantic model</text>
+      <line x1="234" y1="70" x2="402" y2="70" stroke="#3d2d6b" stroke-width="1"/>
+
+      <!-- ENTITIES -->
+      <text x="238" y="85" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="7.5" font-weight="600" letter-spacing="1">ENTITIES</text>
+      <rect x="238" y="90" width="164" height="20" rx="3" fill="rgba(167,139,250,.1)" stroke="rgba(124,58,237,.3)" stroke-width="1"/>
+      <text x="244" y="103" fill="#c4b5fd" font-family="JetBrains Mono,monospace" font-size="8">order_id <tspan fill="#8b949e">(primary)</tspan></text>
+
+      <!-- DIMENSIONS -->
+      <text x="238" y="126" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="7.5" font-weight="600" letter-spacing="1">DIMENSIONS</text>
+      <rect x="238" y="131" width="164" height="20" rx="3" fill="rgba(88,166,255,.07)" stroke="rgba(88,166,255,.2)" stroke-width="1"/>
+      <text x="244" y="144" fill="#58a6ff" font-family="JetBrains Mono,monospace" font-size="8">region <tspan fill="#8b949e">· channel · status</tspan></text>
+      <rect x="238" y="155" width="164" height="20" rx="3" fill="rgba(88,166,255,.06)" stroke="rgba(88,166,255,.2)" stroke-width="1"/>
+      <text x="244" y="168" fill="#58a6ff" font-family="JetBrains Mono,monospace" font-size="8">ordered_at <tspan fill="#8b949e">(time dimension)</tspan></text>
+
+      <!-- MEASURES -->
+      <text x="238" y="193" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="7.5" font-weight="600" letter-spacing="1">MEASURES</text>
+      <rect x="238" y="198" width="164" height="20" rx="3" fill="rgba(63,185,80,.08)" stroke="rgba(63,185,80,.25)" stroke-width="1"/>
+      <text x="244" y="211" fill="#3fb950" font-family="JetBrains Mono,monospace" font-size="8">order_total <tspan fill="#8b949e">SUM</tspan></text>
+      <rect x="238" y="222" width="164" height="20" rx="3" fill="rgba(63,185,80,.06)" stroke="rgba(63,185,80,.2)" stroke-width="1"/>
+      <text x="244" y="235" fill="#3fb950" font-family="JetBrains Mono,monospace" font-size="8">order_id <tspan fill="#8b949e">COUNT</tspan></text>
+
+      <!-- sem → metrics arrows -->
+      <path d="M410 100 L452 90" stroke="#7c3aed" stroke-width="1.5" fill="none" marker-end="url(#sp)" opacity=".7"/>
+      <path d="M410 155 L452 165" stroke="#7c3aed" stroke-width="1.5" fill="none" marker-end="url(#sp)" opacity=".7"/>
+      <path x1="410" y1="228" x2="452" y2="240" stroke="#7c3aed" stroke-width="1.5" fill="none" marker-end="url(#sp)" opacity=".7"/>
+      <path d="M410 228 L452 240" stroke="#7c3aed" stroke-width="1.5" fill="none" marker-end="url(#sp)" opacity=".7"/>
+      <text x="430" y="130" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="7.5" text-anchor="middle">defines</text>
+
+      <!-- METRICS -->
+      <!-- revenue -->
+      <rect x="452" y="42" width="332" height="72" rx="7" fill="rgba(124,58,237,.08)" stroke="rgba(124,58,237,.3)" stroke-width="1.5"/>
+      <text x="464" y="60" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="10" font-weight="600">revenue</text>
+      <rect x="546" y="47" width="46" height="16" rx="3" fill="rgba(124,58,237,.15)" stroke="rgba(124,58,237,.3)" stroke-width="1"/>
+      <text x="569" y="58" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="7.5" text-anchor="middle">simple</text>
+      <line x1="460" y1="68" x2="776" y2="68" stroke="#2d333b" stroke-width="1"/>
+      <text x="464" y="81" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="8">measure</text>
+      <text x="528" y="81" fill="#e6edf3" font-family="JetBrains Mono,monospace" font-size="8">SUM(order_total) where status=completed</text>
+      <text x="464" y="97" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="8">group by</text>
+      <text x="528" y="97" fill="#58a6ff" font-family="JetBrains Mono,monospace" font-size="8">region · channel · time</text>
+
+      <!-- order_count -->
+      <rect x="452" y="130" width="332" height="66" rx="7" fill="rgba(88,166,255,.07)" stroke="rgba(88,166,255,.25)" stroke-width="1.5"/>
+      <text x="464" y="148" fill="#58a6ff" font-family="JetBrains Mono,monospace" font-size="10" font-weight="600">order_count</text>
+      <rect x="562" y="135" width="46" height="16" rx="3" fill="rgba(88,166,255,.1)" stroke="rgba(88,166,255,.3)" stroke-width="1"/>
+      <text x="585" y="146" fill="#58a6ff" font-family="JetBrains Mono,monospace" font-size="7.5" text-anchor="middle">simple</text>
+      <line x1="460" y1="155" x2="776" y2="155" stroke="#2d333b" stroke-width="1"/>
+      <text x="464" y="168" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="8">measure</text>
+      <text x="528" y="168" fill="#e6edf3" font-family="JetBrains Mono,monospace" font-size="8">COUNT(order_id)</text>
+      <text x="464" y="185" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="8">group by</text>
+      <text x="528" y="185" fill="#58a6ff" font-family="JetBrains Mono,monospace" font-size="8">region · channel · time</text>
+
+      <!-- avg_order_value (derived) -->
+      <rect x="452" y="212" width="332" height="66" rx="7" fill="rgba(210,153,34,.07)" stroke="rgba(210,153,34,.25)" stroke-width="1.5"/>
+      <text x="464" y="230" fill="#d29922" font-family="JetBrains Mono,monospace" font-size="10" font-weight="600">avg_order_value</text>
+      <rect x="600" y="217" width="52" height="16" rx="3" fill="rgba(210,153,34,.1)" stroke="rgba(210,153,34,.3)" stroke-width="1"/>
+      <text x="626" y="228" fill="#d29922" font-family="JetBrains Mono,monospace" font-size="7.5" text-anchor="middle">derived</text>
+      <line x1="460" y1="237" x2="776" y2="237" stroke="#2d333b" stroke-width="1"/>
+      <text x="464" y="250" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="8">expr</text>
+      <text x="528" y="250" fill="#e6edf3" font-family="JetBrains Mono,monospace" font-size="8">revenue / order_count</text>
+      <text x="464" y="267" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="8">inherits</text>
+      <text x="528" y="267" fill="#58a6ff" font-family="JetBrains Mono,monospace" font-size="8">all dimensions from parent metrics</text>
+    </svg>
+  </div>
+  <div class="cap">The semantic model registers <strong>entities</strong> (the grain), <strong>dimensions</strong> (how to slice), and <strong>measures</strong> (raw aggregations). Metrics sit on top — simple ones reference a single measure, derived ones compose from other metrics. When an AI agent calls <code style="color:var(--pl)">query_metrics("revenue")</code>, MetricFlow generates the SQL. Nothing extra is materialized.</div>
+</div>`;
+}
+
+function renderStep3() {
+  var tabs = [
+    {
+      label: 'Revenue by region',
+      q: 'What was revenue last quarter, broken down by region?',
+      steps: [
+        { n:'01', label:'Discover available metrics', call:'list_metrics()', result:'[revenue, churn_rate, cac, active_users, avg_order_value]' },
+        { n:'02', label:'Check what dimensions revenue supports', call:'get_dimensions(metrics=["revenue"])', result:'[region, channel, status, metric_time__quarter]' },
+        { n:'03', label:'Query the metric', call:'query_metrics("revenue", group_by=["region", "metric_time__quarter"], where=["Q4 2025"])', result:'{North:$4.2M, South:$2.8M, West:$3.1M, East:$1.9M}' },
+      ],
+      answer: 'Q4 revenue totaled $12.0M. North led at $4.2M, followed by West ($3.1M), South ($2.8M), and East ($1.9M — fastest-growing at +18.8% YoY).'
+    },
+    {
+      label: 'Churn by segment',
+      q: 'Is churn getting worse, and which segment is driving it?',
+      steps: [
+        { n:'01', label:'Confirm metric and dimensions', call:'get_dimensions(metrics=["churn_rate"])', result:'[plan_type, region, cohort_month, metric_time]' },
+        { n:'02', label:'Query trend across segments', call:'query_metrics("churn_rate", group_by=["plan_type", "metric_time__quarter"])', result:'{free: 2.1%→3.4%, pro: 0.8%→0.9%, enterprise: 0.2%→0.2%}' },
+        { n:'03', label:'Pull volume for context', call:'query_metrics("active_users", group_by=["plan_type"])', result:'{free: 28K, pro: 11K, enterprise: 3K}' },
+      ],
+      answer: 'Churn is rising, but only in the free tier — up from 2.1% to 3.4% over 3 quarters. Pro and enterprise are flat. This looks like a conversion or onboarding issue, not a product-wide problem.'
+    },
+    {
+      label: 'CAC by channel',
+      q: 'How has CAC trended and does it vary by acquisition channel?',
+      steps: [
+        { n:'01', label:'Verify channel dimension on CAC', call:'get_dimensions(metrics=["cac"])', result:'[channel, region, metric_time__month, metric_time__quarter]' },
+        { n:'02', label:'Query CAC trend by channel', call:'query_metrics("cac", group_by=["channel", "metric_time__quarter"])', result:'{paid_search: $320→$410, organic: $90→$95, social: $210→$380}' },
+        { n:'03', label:'Compare new customer volume', call:'query_metrics("new_customers", group_by=["channel"])', result:'{paid_search: 1240, organic: 890, social: 560}' },
+      ],
+      answer: 'CAC is rising across the board, but social is the outlier — up 81% QoQ with the lowest volume. Paid search costs more but drives 2x the customers. Worth reviewing social targeting before next budget cycle.'
+    },
+  ];
+
+  window._loopTabs = tabs;
+  window._loopActive = 0;
+
+  function buildLoop(ti) {
+    var t = tabs[ti];
+    var html = '';
+    html += '<div style="margin-bottom:12px;padding:10px 13px;background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.25);border-radius:8px">';
+    html += '<div style="font-family:var(--mono);font-size:9px;color:var(--pl);margin-bottom:4px;letter-spacing:1px">USER QUESTION</div>';
+    html += '<div style="font-size:13px;color:#fff">' + t.q + '</div>';
+    html += '</div>';
+
+    // flow diagram
+    html += '<div style="display:flex;flex-direction:column;gap:6px">';
+    for (var i = 0; i < t.steps.length; i++) {
+      var s = t.steps[i];
+      html += '<div style="display:flex;gap:0;align-items:stretch">';
+      // connector line
+      html += '<div style="display:flex;flex-direction:column;align-items:center;width:28px;flex-shrink:0;padding-top:4px">';
+      html += '<div style="width:22px;height:22px;border-radius:6px;background:var(--purple);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:9px;font-weight:600;color:#fff;flex-shrink:0">' + s.n + '</div>';
+      if (i < t.steps.length - 1) html += '<div style="width:2px;flex:1;background:rgba(124,58,237,.3);margin-top:4px;min-height:12px"></div>';
+      html += '</div>';
+      // content
+      html += '<div style="flex:1;margin-left:10px;padding:8px 12px;background:var(--raised);border:1px solid var(--border);border-radius:8px;margin-bottom:' + (i < t.steps.length-1 ? '6' : '0') + 'px">';
+      html += '<div style="font-size:11px;color:var(--muted);margin-bottom:5px">' + s.label + '</div>';
+      html += '<div style="font-family:var(--mono);font-size:10px;color:var(--pl);background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.2);border-radius:4px;padding:4px 8px;margin-bottom:4px">&rarr; ' + s.call + '</div>';
+      html += '<div style="font-family:var(--mono);font-size:10px;color:var(--green);background:rgba(63,185,80,.06);border:1px solid rgba(63,185,80,.15);border-radius:4px;padding:4px 8px">&larr; ' + s.result + '</div>';
+      html += '</div>';
+      html += '</div>';
+    }
+    html += '</div>';
+
+    // answer
+    html += '<div style="margin-top:10px;padding:11px 13px;background:rgba(63,185,80,.06);border:1px solid rgba(63,185,80,.2);border-radius:8px">';
+    html += '<div style="font-family:var(--mono);font-size:9px;color:var(--green);letter-spacing:1px;margin-bottom:5px">AGENT RESPONSE</div>';
+    html += '<div style="font-size:12px;color:var(--text);line-height:1.6">' + t.answer + '</div>';
+    html += '</div>';
+
+    return html;
+  }
+
+  window._buildLoop = buildLoop;
+
+  var tabsHtml = '<div style="display:flex;border-bottom:1px solid var(--border);background:var(--bg)">';
+  for (var i = 0; i < tabs.length; i++) {
+    tabsHtml += '<button onclick="switchLoopTab(' + i + ')" id="ltab' + i + '" style="flex:1;padding:9px 6px;font-size:11px;font-weight:500;text-align:center;cursor:pointer;color:' + (i===0?'var(--pl)':'var(--muted)') + ';border:none;background:transparent;font-family:var(--sans);border-bottom:2px solid ' + (i===0?'var(--purple)':'transparent') + ';transition:all .2s">' + tabs[i].label + '</button>';
+  }
+  tabsHtml += '</div>';
+
+  return '<div class="card"><div class="card-title">How the agent reasons</div><div class="card-sub">The agent calls MCP tools step by step — it never writes SQL from scratch.</div>' +
+    '<div style="background:var(--raised);border:1px solid var(--border);border-radius:10px;overflow:hidden">' +
+    tabsHtml +
+    '<div id="loopbody" style="padding:16px">' + buildLoop(0) + '</div>' +
+    '</div></div>';
+}
+
+window.switchLoopTab = function(i) {
+  window._loopActive = i;
+  for (var j = 0; j < 3; j++) {
+    var el = document.getElementById('ltab' + j);
+    if (el) {
+      el.style.color = j === i ? 'var(--pl)' : 'var(--muted)';
+      el.style.borderBottomColor = j === i ? 'var(--purple)' : 'transparent';
+    }
+  }
+  var body = document.getElementById('loopbody');
+  if (body) body.innerHTML = window._buildLoop(i);
+};
+
+function renderStep4() {
+  var cases = [
+    {
+      title: 'Conversational analytics',
+      sub: 'Ask in Slack or chat — no dashboard required',
+      vis: function() {
+        return '<div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;overflow:hidden">' +
+          '<div style="padding:9px 13px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px">ANALYTICS AGENT</div>' +
+          '<div style="padding:12px;display:flex;flex-direction:column;gap:8px">' +
+          '<div style="align-self:flex-end;max-width:85%;padding:8px 11px;border-radius:8px;font-size:12px;line-height:1.5;background:rgba(124,58,237,.18);border:1px solid rgba(124,58,237,.3);color:#c4b5fd">What drove East region growth last quarter?</div>' +
+          '<div style="align-self:flex-start;max-width:92%;padding:9px 12px;border-radius:8px;font-size:12px;line-height:1.5;background:var(--raised);border:1px solid var(--border)">' +
+          '<span style="display:block;font-family:var(--mono);font-size:10px;color:var(--pl);background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.2);border-radius:4px;padding:3px 7px;margin-bottom:5px">&rarr; query_metrics(revenue, group_by=[region, channel])</span>' +
+          '<span style="display:block;font-family:var(--mono);font-size:10px;color:var(--green);background:rgba(63,185,80,.06);border:1px solid rgba(63,185,80,.15);border-radius:4px;padding:3px 7px;margin-bottom:6px">&larr; East: $1.9M · Digital +34%</span>' +
+          'East growth was almost entirely digital — up 34% QoQ. New customer acquisition, not expansion.</div>' +
+          '<div style="align-self:flex-end;max-width:85%;padding:8px 11px;border-radius:8px;font-size:12px;background:rgba(124,58,237,.18);border:1px solid rgba(124,58,237,.3);color:#c4b5fd">Is CAC holding up?</div>' +
+          '<div style="align-self:flex-start;max-width:92%;padding:9px 12px;border-radius:8px;font-size:12px;line-height:1.5;background:var(--raised);border:1px solid var(--border)">' +
+          '<span style="display:block;font-family:var(--mono);font-size:10px;color:var(--pl);background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.2);border-radius:4px;padding:3px 7px;margin-bottom:5px">&rarr; query_metrics(cac, region=East)</span>' +
+          '<span style="display:block;font-family:var(--mono);font-size:10px;color:var(--green);background:rgba(63,185,80,.06);border:1px solid rgba(63,185,80,.15);border-radius:4px;padding:3px 7px;margin-bottom:6px">&larr; CAC up 18% · payback 14mo</span>' +
+          'Efficient for now, but payback is stretching. Worth watching in Q1.</div>' +
+          '</div>' +
+          '<div style="font-size:10px;color:var(--green);text-align:center;padding:6px;border-top:1px solid var(--border);background:rgba(63,185,80,.04)">No ticket · no analyst · follows the thread</div>' +
+          '</div>';
+      }
+    },
+    {
+      title: 'Automated reporting',
+      sub: 'Agent pulls metrics, writes the narrative, sends it',
+      vis: function() {
+        return '<div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;overflow:hidden">' +
+          '<div style="padding:9px 13px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:10px;color:var(--muted);display:flex;justify-content:space-between"><span>WEEKLY EXEC DIGEST</span><span style="color:var(--green)">Mon 7:00am · auto-generated</span></div>' +
+          '<div style="padding:14px;display:flex;flex-direction:column;gap:10px">' +
+          '<div style="font-size:13px;font-weight:600;color:#fff">Week of Dec 16 — Key Signals</div>' +
+          '<div style="font-size:12px;color:var(--text);line-height:1.7;background:var(--raised);padding:10px;border-radius:7px;border:1px solid var(--border)">Revenue came in at <strong style="color:var(--green)">$4.2M</strong>, up 2.4% vs prior week. Paid channel continues to soften — down 12% MoM — while direct held at +8%. Churn held steady at 3.1%. CAC climbed 6% in the paid channel; if the trend continues into Q1, it warrants a budget review.</div>' +
+          '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">' +
+          '<div style="background:var(--raised);border:1px solid var(--border);border-radius:7px;padding:10px;text-align:center"><div style="font-family:var(--mono);font-size:16px;color:var(--green);font-weight:600">$4.2M</div><div style="font-size:10px;color:var(--muted);margin-top:3px">Revenue</div></div>' +
+          '<div style="background:var(--raised);border:1px solid var(--border);border-radius:7px;padding:10px;text-align:center"><div style="font-family:var(--mono);font-size:16px;color:var(--red);font-weight:600">-12%</div><div style="font-size:10px;color:var(--muted);margin-top:3px">Paid channel</div></div>' +
+          '<div style="background:var(--raised);border:1px solid var(--border);border-radius:7px;padding:10px;text-align:center"><div style="font-family:var(--mono);font-size:16px;color:var(--amber);font-weight:600">3.1%</div><div style="font-size:10px;color:var(--muted);margin-top:3px">Churn</div></div>' +
+          '</div></div></div>';
+      }
+    },
+    {
+      title: 'Root cause analysis',
+      sub: 'Metric drops → agent traces lineage → surfaces cause',
+      vis: function() {
+        return '<div style="display:flex;flex-direction:column;gap:7px">' +
+          '<div style="background:rgba(248,81,73,.08);border:1px solid rgba(248,81,73,.25);border-radius:7px;padding:10px 12px"><div style="font-size:10px;color:#fca5a5;font-family:var(--mono);margin-bottom:3px;letter-spacing:1px">ALERT</div><div style="font-size:12px">revenue dropped 18% vs same day last week</div></div>' +
+          '<div style="background:var(--raised);border:1px solid var(--border);border-radius:7px;padding:10px 12px"><div style="font-size:10px;color:var(--pl);font-family:var(--mono);margin-bottom:4px">&rarr; get_lineage(metric="revenue")</div><div style="font-size:11px;color:var(--muted)">Traces: fct_orders &rarr; int_orders_enriched &rarr; stg_payments</div></div>' +
+          '<div style="background:var(--raised);border:1px solid var(--border);border-radius:7px;padding:10px 12px"><div style="font-size:10px;color:var(--pl);font-family:var(--mono);margin-bottom:4px">&rarr; get_model_details("stg_payments")</div><div style="font-size:11px;color:var(--muted)">Last successful run: <span style="color:var(--red)">31 hours ago</span>. Expected: every 6 hours.</div></div>' +
+          '<div style="background:rgba(63,185,80,.06);border:1px solid rgba(63,185,80,.2);border-radius:7px;padding:10px 12px"><div style="font-size:10px;color:var(--green);font-family:var(--mono);margin-bottom:4px;letter-spacing:1px">AGENT CONCLUSION</div><div style="font-size:12px;color:var(--text);line-height:1.6">stg_payments hasn\'t refreshed in 31 hours — likely a stale source pipeline, not a real revenue drop. Check the payment connector before escalating.</div></div>' +
+          '</div>';
+      }
+    },
+    {
+      title: 'Agentic pipelines',
+      sub: 'Detect → query → act → report, no human in the loop',
+      vis: function() {
+        var rows = [
+          { step:'Detect', color:'var(--amber)', detail:'Scheduled trigger: end of business day', action:'check metric thresholds vs 30d avg' },
+          { step:'Query', color:'var(--pl)', detail:'query_metrics(revenue, cac, churn) for today', action:'identify anomalies' },
+          { step:'Reason', color:'var(--blue)', detail:'CAC up 22% · churn flat · revenue on track', action:'flag paid channel as signal worth investigating' },
+          { step:'Act', color:'var(--orange)', detail:'trigger_job("refresh_paid_channel_analysis")', action:'kick off dbt job for fresh data' },
+          { step:'Report', color:'var(--green)', detail:'Post to #data-alerts with findings + job link', action:'notify team automatically' },
+        ];
+        var html = '<div style="display:flex;flex-direction:column;gap:5px">';
+        for (var i = 0; i < rows.length; i++) {
+          var r = rows[i];
+          html += '<div style="display:flex;align-items:flex-start;gap:10px;padding:9px 11px;background:var(--raised);border:1px solid var(--border);border-radius:7px">';
+          html += '<div style="width:58px;font-family:var(--mono);font-size:10px;font-weight:600;color:' + r.color + ';flex-shrink:0;padding-top:1px">' + r.step + '</div>';
+          html += '<div style="flex:1"><div style="font-size:11px;color:var(--text)">' + r.detail + '</div><div style="font-size:10px;color:var(--muted);margin-top:2px">' + r.action + '</div></div>';
+          html += '</div>';
+        }
+        html += '</div>';
+        return html;
+      }
+    },
+    {
+      title: 'Governed AI queries',
+      sub: 'Same definitions power Tableau and your LLM',
+      vis: function() {
+        return '<div style="display:flex;flex-direction:column;gap:8px">' +
+          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">' +
+          '<div style="background:rgba(248,81,73,.07);border:1px solid rgba(248,81,73,.2);border-radius:8px;padding:12px"><div style="font-family:var(--mono);font-size:9px;color:#fca5a5;margin-bottom:7px;letter-spacing:1px">WITHOUT dbt</div><div style="font-size:11px;color:var(--muted);line-height:1.8">LLM writes raw SQL<br>Guesses table names<br>"Revenue" differs per query<br>No lineage, no tests<br><span style="color:var(--red)">No trust.</span></div></div>' +
+          '<div style="background:rgba(63,185,80,.07);border:1px solid rgba(63,185,80,.2);border-radius:8px;padding:12px"><div style="font-family:var(--mono);font-size:9px;color:var(--green);margin-bottom:7px;letter-spacing:1px">WITH dbt</div><div style="font-size:11px;color:var(--muted);line-height:1.8">Agent calls named metrics<br>Definitions enforced in YAML<br>Same answer every time<br>Full lineage preserved<br><span style="color:var(--green)">Governed by default.</span></div></div>' +
+          '</div>' +
+          '<div style="background:var(--raised);border:1px solid var(--border);border-radius:8px;padding:10px 12px"><div style="font-family:var(--mono);font-size:9px;color:var(--pl);margin-bottom:7px;letter-spacing:1px">THE CONTRACT</div><div style="display:flex;gap:6px;flex-wrap:wrap">' +
+          ['metrics defined once','dimensions validated','MetricFlow generates SQL','same as Tableau queries','lineage preserved'].map(function(t){ return '<span style="font-family:var(--mono);font-size:10px;padding:3px 8px;border-radius:5px;background:var(--pdim);border:1px solid rgba(124,58,237,.3);color:var(--pl)">' + t + '</span>'; }).join('') +
+          '</div></div></div>';
+      }
+    },
+  ];
+
+  window._ucCases = cases;
+
+  var pillsHtml = '<div style="display:flex;flex-direction:column;gap:6px" id="ucpills">';
+  for (var i = 0; i < cases.length; i++) {
+    var active = i === 0;
+    pillsHtml += '<div onclick="setUC(' + i + ')" id="ucpill' + i + '" style="padding:11px 14px;background:' + (active?'var(--pdim)':'var(--raised)') + ';border:1px solid ' + (active?'var(--purple)':'var(--border)') + ';border-radius:9px;cursor:pointer;transition:all .2s">';
+    pillsHtml += '<div style="font-size:13px;font-weight:600;color:var(--text)">' + cases[i].title + '</div>';
+    pillsHtml += '<div style="font-size:11px;color:var(--muted);margin-top:2px">' + cases[i].sub + '</div>';
+    pillsHtml += '</div>';
+  }
+  pillsHtml += '</div>';
+
+  var visHtml = '<div style="background:var(--raised);border:1px solid var(--border);border-radius:10px;overflow:hidden;min-height:280px;display:flex;flex-direction:column">' +
+    '<div style="padding:9px 13px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px" id="uc-hdr">' + cases[0].title.toUpperCase() + '</div>' +
+    '<div style="padding:14px;flex:1" id="uc-body">' + cases[0].vis() + '</div>' +
+    '</div>';
+
+  return '<div class="card"><div class="card-title">What this unlocks</div><div class="card-sub">Click a use case to see what it looks like.</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1.5fr;gap:14px">' +
+    pillsHtml + visHtml +
+    '</div></div>';
+}
+
+window.setUC = function(i) {
+  var cases = window._ucCases;
+  if (!cases) return;
+  for (var j = 0; j < cases.length; j++) {
+    var pill = document.getElementById('ucpill' + j);
+    if (pill) {
+      pill.style.background = j === i ? 'var(--pdim)' : 'var(--raised)';
+      pill.style.borderColor = j === i ? 'var(--purple)' : 'var(--border)';
+    }
+  }
+  var hdr = document.getElementById('uc-hdr');
+  var body = document.getElementById('uc-body');
+  if (hdr) hdr.textContent = cases[i].title.toUpperCase();
+  if (body) body.innerHTML = cases[i].vis();
+};
+
+/* ─── STEPS ARRAY ─────────────────────────────────────── */
+function renderStep5() {
+  var configs = [
+    {
+      num: '01',
+      title: 'Cursor / Claude',
+      sub: 'No dbt context',
+      color: 'var(--muted)',
+      border: 'var(--border)',
+      bg: 'var(--raised)',
+      stack: ['AI coding agent', 'Your codebase (files only)'],
+      stackColors: ['var(--amber)', 'var(--muted)'],
+      caps: [
+        { label: 'Write SQL queries',           have: true,  note: 'generates raw SQL from scratch' },
+        { label: 'Understand your schema',       have: 'partial', note: 'only if you paste it in' },
+        { label: 'Know your metric definitions', have: false, note: 'guesses from table/column names' },
+        { label: 'Validated, tested output',     have: false, note: 'no tests, no contracts' },
+        { label: 'Lineage awareness',            have: false, note: 'no DAG, no upstream context' },
+        { label: 'Consistent answers',           have: false, note: '"revenue" means whatever the model guesses' },
+      ],
+      scenario: {
+        q: 'What was revenue last month by region?',
+        steps: [
+          { type: 'think', text: 'I\'ll look for a table that sounds like orders or revenue...' },
+          { type: 'sql',   text: 'SELECT region, SUM(amount)\nFROM orders\nWHERE date >= \'2025-11-01\'\nGROUP BY region' },
+          { type: 'warn',  text: 'Guessed "amount" column · no filter for completed orders · no tests · may be wrong' },
+        ]
+      }
+    },
+    {
+      num: '02',
+      title: 'Cursor / Claude + dbt MCP',
+      sub: 'Semantic Layer connected',
+      color: 'var(--green)',
+      border: 'rgba(63,185,80,.4)',
+      bg: 'rgba(63,185,80,.05)',
+      stack: ['AI coding agent', 'dbt MCP Server', 'Semantic Layer → MetricFlow'],
+      stackColors: ['var(--amber)', 'var(--green)', 'var(--pl)'],
+      caps: [
+        { label: 'Write SQL queries',           have: true,  note: 'still can, but no longer needs to' },
+        { label: 'Understand your schema',       have: true,  note: 'via get_model_details, get_all_models' },
+        { label: 'Know your metric definitions', have: true,  note: 'list_metrics · get_dimensions' },
+        { label: 'Validated, tested output',     have: true,  note: 'queries go through MetricFlow' },
+        { label: 'Lineage awareness',            have: true,  note: 'get_lineage available as a tool' },
+        { label: 'Consistent answers',           have: true,  note: 'revenue = revenue, always' },
+      ],
+      scenario: {
+        q: 'What was revenue last month by region?',
+        steps: [
+          { type: 'tool',   text: 'list_metrics()  →  [revenue, churn_rate, cac...]' },
+          { type: 'tool',   text: 'get_dimensions("revenue")  →  [region, channel, metric_time__month]' },
+          { type: 'tool',   text: 'query_metrics("revenue", group_by=["region"], where=["Nov 2025"])' },
+          { type: 'result', text: '{North: $4.2M, West: $3.1M, South: $2.8M, East: $1.9M}' },
+          { type: 'ok',     text: 'Governed · tested · consistent — no SQL written by the model' },
+        ]
+      }
+    },
+    {
+      num: '03',
+      title: '+ dbt Extension & Fusion',
+      sub: 'IDE-aware, live project context',
+      color: 'var(--blue)',
+      border: 'rgba(88,166,255,.4)',
+      bg: 'rgba(88,166,255,.05)',
+      stack: ['AI coding agent', 'dbt Extension (VS Code / Cursor)', 'Fusion engine (live project graph)', 'dbt MCP Server'],
+      stackColors: ['var(--amber)', 'var(--blue)', 'var(--orange)', 'var(--green)'],
+      caps: [
+        { label: 'Write SQL queries',           have: true,  note: 'with full project context' },
+        { label: 'Understand your schema',       have: true,  note: 'live — no compile step required' },
+        { label: 'Know your metric definitions', have: true,  note: 'via MCP + extension context' },
+        { label: 'Validated, tested output',     have: true,  note: 'via MetricFlow + Fusion validation' },
+        { label: 'Lineage awareness',            have: true,  note: 'real-time DAG in editor + MCP' },
+        { label: 'Autocomplete & ref() linking', have: true,  note: 'Fusion keeps graph live — refs resolve instantly' },
+      ],
+      scenario: {
+        q: 'Build a new model that joins orders with customer segments',
+        steps: [
+          { type: 'think',  text: 'Extension sees full project — fct_orders, dim_customers already in context' },
+          { type: 'sql',    text: 'SELECT o.*, c.segment\nFROM {{ ref(\'fct_orders\') }} o\nJOIN {{ ref(\'dim_customers\') }} c\n  ON o.customer_id = c.customer_id' },
+          { type: 'ok',     text: 'ref() autocompleted · Fusion validates upstream exists · lineage auto-updated' },
+        ]
+      }
+    },
+    {
+      num: '04',
+      title: '+ Everything Together',
+      sub: 'Full dbt stack — most powerful',
+      color: 'var(--pl)',
+      border: 'rgba(167,139,250,.5)',
+      bg: 'rgba(124,58,237,.07)',
+      stack: ['AI coding agent', 'dbt Extension + Fusion (live context)', 'dbt MCP Server (query + catalog)', 'Semantic Layer (governed metrics)', 'Tested, documented mart models'],
+      stackColors: ['var(--amber)', 'var(--blue)', 'var(--green)', 'var(--pl)', 'var(--orange)'],
+      caps: [
+        { label: 'Write & validate models',       have: true,  note: 'extension + Fusion, live' },
+        { label: 'Query governed metrics',         have: true,  note: 'MCP + Semantic Layer' },
+        { label: 'Trace lineage end-to-end',       have: true,  note: 'from source to metric' },
+        { label: 'Consistent, tested answers',     have: true,  note: 'MetricFlow enforces definitions' },
+        { label: 'Trigger & monitor jobs',         have: true,  note: 'list_jobs, trigger_job via MCP' },
+        { label: 'Build + query in same session',  have: true,  note: 'model in editor, query via MCP — closed loop' },
+      ],
+      scenario: {
+        q: 'Something looks off with churn — investigate and fix it',
+        steps: [
+          { type: 'tool',   text: 'query_metrics("churn_rate", group_by=["plan_type"])  →  free tier spike' },
+          { type: 'tool',   text: 'get_lineage("churn_rate")  →  traces to stg_subscriptions' },
+          { type: 'think',  text: 'Extension opens stg_subscriptions — spots a bad filter on cancelled_at' },
+          { type: 'sql',    text: '-- fix: stg_subscriptions.sql\nWHERE cancelled_at IS NOT NULL\n  AND cancellation_reason != \'payment_retry\'' },
+          { type: 'tool',   text: 'trigger_job("stg_subscriptions")  →  job queued' },
+          { type: 'ok',     text: 'Investigated, diagnosed, fixed, and re-run — all in one session' },
+        ]
+      }
+    },
+  ];
+
+  window._cfgCases = configs;
+
+  function buildConfig(i) {
+    var c = configs[i];
+    var html = '';
+
+    // stack pills
+    html += '<div style="margin-bottom:14px">';
+    html += '<div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:7px">STACK</div>';
+    html += '<div style="display:flex;flex-direction:column;gap:4px">';
+    for (var s = c.stack.length - 1; s >= 0; s--) {
+      html += '<div style="padding:6px 10px;border-radius:6px;font-family:var(--mono);font-size:10px;font-weight:600;color:' + c.stackColors[s] + ';background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);text-align:center">' + c.stack[s] + '</div>';
+      if (s > 0) html += '<div style="text-align:center;color:#374151;font-size:12px;line-height:1">↑</div>';
+    }
+    html += '</div></div>';
+
+    // capabilities
+    html += '<div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:7px">CAPABILITIES</div>';
+    html += '<div style="display:flex;flex-direction:column;gap:5px;margin-bottom:14px">';
+    for (var ci = 0; ci < c.caps.length; ci++) {
+      var cap = c.caps[ci];
+      var icon, iconColor;
+      if (cap.have === true)        { icon = '✓'; iconColor = 'var(--green)'; }
+      else if (cap.have === 'partial') { icon = '~'; iconColor = 'var(--amber)'; }
+      else                           { icon = '✗'; iconColor = 'var(--red)'; }
+      html += '<div style="display:flex;align-items:flex-start;gap:8px;padding:7px 10px;background:var(--raised);border:1px solid var(--border);border-radius:6px">';
+      html += '<span style="font-family:var(--mono);font-size:11px;font-weight:600;color:' + iconColor + ';flex-shrink:0;width:14px">' + icon + '</span>';
+      html += '<div style="flex:1"><div style="font-size:11px;font-weight:500;color:var(--text)">' + cap.label + '</div>';
+      html += '<div style="font-size:10px;color:var(--muted);margin-top:1px">' + cap.note + '</div></div>';
+      html += '</div>';
+    }
+    html += '</div>';
+
+    // scenario
+    html += '<div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;margin-bottom:7px">EXAMPLE INTERACTION</div>';
+    html += '<div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;overflow:hidden">';
+    html += '<div style="padding:8px 12px;background:rgba(124,58,237,.08);border-bottom:1px solid rgba(124,58,237,.2)">';
+    html += '<div style="font-size:11px;color:#c4b5fd">' + c.scenario.q + '</div></div>';
+    html += '<div style="padding:10px 12px;display:flex;flex-direction:column;gap:5px">';
+    for (var si = 0; si < c.scenario.steps.length; si++) {
+      var step = c.scenario.steps[si];
+      var bg, color, prefix;
+      if      (step.type === 'tool')   { bg = 'rgba(124,58,237,.08)'; color = 'var(--pl)';    prefix = '→ '; }
+      else if (step.type === 'result') { bg = 'rgba(63,185,80,.06)';  color = 'var(--green)'; prefix = '← '; }
+      else if (step.type === 'ok')     { bg = 'rgba(63,185,80,.06)';  color = 'var(--green)'; prefix = '✓ '; }
+      else if (step.type === 'warn')   { bg = 'rgba(210,153,34,.07)'; color = 'var(--amber)'; prefix = '⚠ '; }
+      else if (step.type === 'think')  { bg = 'rgba(255,255,255,.03)';color = 'var(--muted)'; prefix = '… '; }
+      else                             { bg = 'rgba(88,166,255,.06)';  color = 'var(--blue)';  prefix = '';   }
+      html += '<div style="font-family:var(--mono);font-size:10px;color:' + color + ';background:' + bg + ';border-radius:4px;padding:4px 8px;white-space:pre-wrap;line-height:1.5">' + prefix + step.text + '</div>';
+    }
+    html += '</div></div>';
+    return html;
+  }
+
+  window._buildConfig = buildConfig;
+
+  // left pills
+  var pillsHtml = '<div style="display:flex;flex-direction:column;gap:6px" id="cfgpills">';
+  for (var i = 0; i < configs.length; i++) {
+    var c = configs[i];
+    var active = i === 0;
+    pillsHtml += '<div onclick="setCfg(' + i + ')" id="cfgpill' + i + '" style="padding:11px 14px;background:' + (active ? c.bg : 'var(--raised)') + ';border:1px solid ' + (active ? c.border : 'var(--border)') + ';border-radius:9px;cursor:pointer;transition:all .2s">';
+    pillsHtml += '<div style="display:flex;align-items:center;gap:8px">';
+    pillsHtml += '<span style="font-family:var(--mono);font-size:11px;font-weight:600;color:' + (active ? c.color : 'var(--muted)') + '">' + c.num + '</span>';
+    pillsHtml += '<div><div style="font-size:12px;font-weight:600;color:var(--text)">' + c.title + '</div>';
+    pillsHtml += '<div style="font-size:10px;color:var(--muted);margin-top:1px">' + c.sub + '</div></div>';
+    pillsHtml += '</div></div>';
+  }
+  pillsHtml += '</div>';
+
+  var visHtml = '<div style="background:var(--raised);border:1px solid var(--border);border-radius:10px;overflow:hidden;display:flex;flex-direction:column">';
+  visHtml += '<div style="padding:9px 13px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px" id="cfg-hdr">' + configs[0].title.toUpperCase() + '</div>';
+  visHtml += '<div style="padding:16px;flex:1;overflow-y:auto;max-height:600px" id="cfg-body">' + buildConfig(0) + '</div>';
+  visHtml += '</div>';
+
+  return '<div class="card"><div class="card-title">Cursor / Claude — 4 configurations</div>' +
+    '<div class="card-sub">Each layer of dbt adds something the AI agent couldn\'t do before. Click to compare.</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1.6fr;gap:14px">' +
+    pillsHtml + visHtml +
+    '</div>' +
+    '<div class="cap">Configuration 4 is the full picture — but configurations 2 and 3 are already meaningful standalone improvements. The question isn\'t "do you need all of it" — it\'s "how much of your data workflow do you want the AI to understand?"</div>' +
+    '</div>';
+}
+
+window.setCfg = function(i) {
+  var configs = window._cfgCases;
+  if (!configs) return;
+  for (var j = 0; j < configs.length; j++) {
+    var pill = document.getElementById('cfgpill' + j);
+    if (pill) {
+      var c = configs[j];
+      pill.style.background   = j === i ? c.bg     : 'var(--raised)';
+      pill.style.borderColor  = j === i ? c.border : 'var(--border)';
+      pill.querySelector('span').style.color = j === i ? c.color : 'var(--muted)';
+    }
+  }
+  var hdr  = document.getElementById('cfg-hdr');
+  var body = document.getElementById('cfg-body');
+  if (hdr)  hdr.textContent  = configs[i].title.toUpperCase();
+  if (body) body.innerHTML   = window._buildConfig(i);
+};
+
+var STEPS = [
+  { lbl: 'The Shift',      render: renderStep0 },
+  { lbl: 'The Stack',      render: renderStep1 },
+  { lbl: 'Semantic Layer', render: renderStep2 },
+  { lbl: 'The Loop',       render: renderStep3 },
+  { lbl: 'Use Cases',      render: renderStep4 },
+  { lbl: 'Configurations', render: renderStep5 },
+];
+
+/* ─── NAV ─────────────────────────────────────────────── */
+function renderNav() {
+  var html = '';
+  for (var i = 0; i < STEPS.length; i++) {
+    html += '<button class="ns ' + (i===cur?'on':'') + '" onclick="goTo(' + i + ')">';
+    html += '<span class="ns-n">' + String(i+1).padStart(2,'0') + '</span>';
+    html += '<span class="ns-l">' + STEPS[i].lbl + '</span>';
+    html += '</button>';
+  }
+  document.getElementById('snav').innerHTML = html;
+}
+
+function renderContent() {
+  document.getElementById('scontent').innerHTML = STEPS[cur].render();
+  document.getElementById('pg').textContent = (cur+1) + ' / ' + STEPS.length;
+  document.getElementById('pb').disabled = cur === 0;
+  var nb = document.getElementById('nb');
+  nb.disabled = cur === STEPS.length - 1;
+  nb.textContent = cur === STEPS.length - 1 ? 'Done' : 'Next →';
+}
+
+function goTo(i) { cur = i; renderNav(); renderContent(); window.scrollTo({top:0,behavior:'smooth'}); }
+function nav(d) { if (cur+d >= 0 && cur+d < STEPS.length) goTo(cur+d); }
+
+renderNav();
+renderContent();
+</script>
+</body>
+</html>

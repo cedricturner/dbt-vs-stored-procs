@@ -864,138 +864,119 @@ window.setCfg = function(i) {
 };
 
 function renderStep6() {
-  return `<div class="card">
-  <div class="card-title">Security &amp; Governance</div>
-  <div class="card-sub">AI queries only what the Semantic Layer allows — read-only, governed, and logged.</div>
+  var caps = [
+    { label: 'Read warehouse data',     dev: true,  ro: true,  ai: true  },
+    { label: 'Write &amp; deploy models',  dev: true,  ro: false, ai: false },
+    { label: 'Modify dbt definitions',  dev: true,  ro: false, ai: false },
+    { label: 'Arbitrary SQL',           dev: true,  ro: true,  ai: false },
+    { label: 'Semantic Layer enforced', dev: false, ro: false, ai: true  },
+  ];
 
-  <div style="background:var(--raised);border:1px solid var(--border);border-radius:10px;padding:16px;overflow-x:auto;margin-bottom:14px">
-    <svg viewBox="0 0 840 248" xmlns="http://www.w3.org/2000/svg" style="width:100%;min-width:580px;display:block">
-      <defs>
-        <marker id="g-a" viewBox="0 0 10 7" refX="9" refY="3.5" markerWidth="6" markerHeight="5" orient="auto"><path d="M0 0 L10 3.5 L0 7z" fill="#d29922"/></marker>
-        <marker id="g-p" viewBox="0 0 10 7" refX="9" refY="3.5" markerWidth="6" markerHeight="5" orient="auto"><path d="M0 0 L10 3.5 L0 7z" fill="#7c3aed"/></marker>
-        <marker id="g-b" viewBox="0 0 10 7" refX="9" refY="3.5" markerWidth="6" markerHeight="5" orient="auto"><path d="M0 0 L10 3.5 L0 7z" fill="#58a6ff"/></marker>
-      </defs>
+  var capsHtml = '<div style="background:var(--raised);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-top:14px">';
+  capsHtml += '<div style="display:grid;grid-template-columns:1fr 90px 90px 90px;border-bottom:1px solid var(--border)">';
+  capsHtml += '<div style="padding:8px 14px;font-family:var(--mono);font-size:8px;letter-spacing:1.5px;color:var(--muted)">CAPABILITY</div>';
+  capsHtml += '<div style="padding:8px 0;font-family:var(--mono);font-size:8.5px;font-weight:600;color:#a78bfa;border-left:1px solid var(--border);text-align:center">DEV</div>';
+  capsHtml += '<div style="padding:8px 0;font-family:var(--mono);font-size:8.5px;font-weight:600;color:#3fb950;border-left:1px solid var(--border);text-align:center">READ-ONLY</div>';
+  capsHtml += '<div style="padding:8px 0;font-family:var(--mono);font-size:8.5px;font-weight:600;color:#d29922;border-left:1px solid var(--border);text-align:center">AI AGENT</div>';
+  capsHtml += '</div>';
+  for (var i = 0; i < caps.length; i++) {
+    var c = caps[i];
+    var last = i === caps.length - 1;
+    capsHtml += '<div style="display:grid;grid-template-columns:1fr 90px 90px 90px' + (!last ? ';border-bottom:1px solid var(--border)' : '') + '">';
+    capsHtml += '<div style="padding:8px 14px;font-size:11px;color:var(--text)">' + c.label + '</div>';
+    capsHtml += '<div style="padding:8px 0;text-align:center;border-left:1px solid var(--border);font-size:15px;color:' + (c.dev ? '#3fb950' : 'var(--border)') + '">' + (c.dev ? '✓' : '–') + '</div>';
+    capsHtml += '<div style="padding:8px 0;text-align:center;border-left:1px solid var(--border);font-size:15px;color:' + (c.ro  ? '#3fb950' : 'var(--border)') + '">' + (c.ro  ? '✓' : '–') + '</div>';
+    capsHtml += '<div style="padding:8px 0;text-align:center;border-left:1px solid var(--border);font-size:15px;color:' + (c.ai  ? '#3fb950' : 'var(--border)') + '">' + (c.ai  ? '✓' : '–') + '</div>';
+    capsHtml += '</div>';
+  }
+  capsHtml += '</div>';
 
-      <!-- BLOCKED direct path: AI → Warehouse (curved over the top, red dashed) -->
-      <path d="M148 94 C330 28 530 28 668 100" stroke="#f85149" stroke-width="1.5" fill="none" stroke-dasharray="5,4" opacity=".35"/>
-      <circle cx="408" cy="42" r="14" fill="rgba(248,81,73,.13)" stroke="#f85149" stroke-width="1.5"/>
-      <line x1="401" y1="35" x2="415" y2="49" stroke="#f85149" stroke-width="2.5" stroke-linecap="round"/>
-      <line x1="415" y1="35" x2="401" y2="49" stroke="#f85149" stroke-width="2.5" stroke-linecap="round"/>
-      <text x="408" y="29" fill="#f85149" font-family="JetBrains Mono,monospace" font-size="7.5" font-weight="600" text-anchor="middle" letter-spacing=".5">NO DIRECT ACCESS</text>
+  return '<div class="card">' +
+  '<div class="card-title">Security &amp; Governance</div>' +
+  '<div class="card-sub">Same warehouse. Different paths. AI agents get one extra gate.</div>' +
+  '<div style="background:var(--raised);border:1px solid var(--border);border-radius:10px;padding:16px;overflow-x:auto">' +
+  '<svg viewBox="0 0 840 332" xmlns="http://www.w3.org/2000/svg" style="width:100%;min-width:600px;display:block">' +
+  '<defs>' +
+  '<marker id="g-p" viewBox="0 0 10 7" refX="9" refY="3.5" markerWidth="6" markerHeight="5" orient="auto"><path d="M0 0 L10 3.5 L0 7z" fill="#7c3aed"/></marker>' +
+  '<marker id="g-g" viewBox="0 0 10 7" refX="9" refY="3.5" markerWidth="6" markerHeight="5" orient="auto"><path d="M0 0 L10 3.5 L0 7z" fill="#3fb950"/></marker>' +
+  '<marker id="g-a" viewBox="0 0 10 7" refX="9" refY="3.5" markerWidth="6" markerHeight="5" orient="auto"><path d="M0 0 L10 3.5 L0 7z" fill="#d29922"/></marker>' +
+  '<marker id="g-m" viewBox="0 0 10 7" refX="9" refY="3.5" markerWidth="6" markerHeight="5" orient="auto"><path d="M0 0 L10 3.5 L0 7z" fill="#444c56"/></marker>' +
+  '</defs>' +
 
-      <!-- AI AGENTS -->
-      <rect x="10" y="76" width="138" height="106" rx="8" fill="rgba(210,153,34,.07)" stroke="#d29922" stroke-width="1.5"/>
-      <text x="79" y="98" fill="#d29922" font-family="JetBrains Mono,monospace" font-size="9" font-weight="600" text-anchor="middle" letter-spacing="1">AI AGENTS</text>
-      <text x="79" y="116" fill="#e6edf3" font-family="JetBrains Mono,monospace" font-size="8.5" text-anchor="middle">Claude · GPT-4</text>
-      <text x="79" y="131" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="8" text-anchor="middle">Cursor · Copilot</text>
-      <text x="79" y="146" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="8" text-anchor="middle">any LLM client</text>
-      <rect x="22" y="157" width="114" height="17" rx="4" fill="rgba(63,185,80,.1)" stroke="rgba(63,185,80,.3)" stroke-width="1"/>
-      <text x="79" y="169" fill="#3fb950" font-family="JetBrains Mono,monospace" font-size="8" font-weight="600" text-anchor="middle">read-only seat</text>
+  '<!-- IDENTITY ICONS -->' +
+  '<circle cx="140" cy="36" r="22" fill="rgba(124,58,237,.12)" stroke="rgba(124,58,237,.35)" stroke-width="1.5"/>' +
+  '<circle cx="140" cy="30" r="7" fill="none" stroke="#a78bfa" stroke-width="1.5"/>' +
+  '<path d="M126 50 C126 42 154 42 154 50" fill="none" stroke="#a78bfa" stroke-width="1.5" stroke-linecap="round"/>' +
+  '<text x="140" y="70" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="9" font-weight="600" text-anchor="middle" letter-spacing=".5">DEVELOPER</text>' +
 
-      <!-- Arrow: AI → Gateway -->
-      <path d="M148 124 L270 124" stroke="#d29922" stroke-width="2" fill="none" marker-end="url(#g-a)"/>
-      <text x="209" y="116" fill="#d29922" font-family="JetBrains Mono,monospace" font-size="7.5" text-anchor="middle">query</text>
+  '<circle cx="420" cy="36" r="22" fill="rgba(63,185,80,.1)" stroke="rgba(63,185,80,.35)" stroke-width="1.5"/>' +
+  '<circle cx="420" cy="30" r="7" fill="none" stroke="#3fb950" stroke-width="1.5"/>' +
+  '<path d="M406 50 C406 42 434 42 434 50" fill="none" stroke="#3fb950" stroke-width="1.5" stroke-linecap="round"/>' +
+  '<text x="420" y="70" fill="#3fb950" font-family="JetBrains Mono,monospace" font-size="9" font-weight="600" text-anchor="middle" letter-spacing=".5">READ-ONLY SEAT</text>' +
 
-      <!-- SEMANTIC LAYER GATEWAY -->
-      <rect x="272" y="56" width="200" height="186" rx="10" fill="rgba(124,58,237,.09)" stroke="#7c3aed" stroke-width="2.5"/>
-      <!-- Shield icon -->
-      <path d="M370 72 L385 79 L385 92 C385 102 378 108 370 112 C362 108 355 102 355 92 L355 79 Z" fill="rgba(124,58,237,.25)" stroke="#a78bfa" stroke-width="1.5"/>
-      <path d="M365 93 L368 97 L376 87" stroke="#a78bfa" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-      <text x="372" y="127" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="10" font-weight="600" text-anchor="middle" letter-spacing=".5">SEMANTIC LAYER</text>
-      <line x1="282" y1="135" x2="462" y2="135" stroke="rgba(124,58,237,.3)" stroke-width="1"/>
-      <text x="372" y="153" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="8" text-anchor="middle">YAML metrics only</text>
-      <text x="372" y="168" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="8" text-anchor="middle">MetricFlow validates all queries</text>
-      <text x="372" y="183" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="8" text-anchor="middle">no arbitrary SQL passthrough</text>
-      <rect x="288" y="195" width="168" height="18" rx="4" fill="rgba(88,166,255,.08)" stroke="rgba(88,166,255,.25)" stroke-width="1"/>
-      <text x="372" y="207" fill="#58a6ff" font-family="JetBrains Mono,monospace" font-size="8" text-anchor="middle">every query logged · traceable</text>
-      <rect x="288" y="219" width="168" height="18" rx="4" fill="rgba(63,185,80,.07)" stroke="rgba(63,185,80,.25)" stroke-width="1"/>
-      <text x="372" y="231" fill="#3fb950" font-family="JetBrains Mono,monospace" font-size="8" text-anchor="middle">governed · consistent · trusted</text>
+  '<circle cx="700" cy="36" r="22" fill="rgba(210,153,34,.1)" stroke="rgba(210,153,34,.35)" stroke-width="1.5"/>' +
+  '<rect x="692" y="24" width="16" height="14" rx="3" fill="none" stroke="#d29922" stroke-width="1.5"/>' +
+  '<circle cx="696" cy="30" r="1.5" fill="#d29922"/><circle cx="704" cy="30" r="1.5" fill="#d29922"/>' +
+  '<line x1="700" y1="38" x2="700" y2="48" stroke="#d29922" stroke-width="1.5" stroke-linecap="round"/>' +
+  '<line x1="694" y1="42" x2="706" y2="42" stroke="#d29922" stroke-width="1.5" stroke-linecap="round"/>' +
+  '<text x="700" y="70" fill="#d29922" font-family="JetBrains Mono,monospace" font-size="9" font-weight="600" text-anchor="middle" letter-spacing=".5">AI AGENT</text>' +
 
-      <!-- Arrow: Gateway → Warehouse -->
-      <path d="M472 152 L600 152" stroke="#7c3aed" stroke-width="2" fill="none" marker-end="url(#g-p)"/>
-      <text x="536" y="144" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="7.5" text-anchor="middle">MetricFlow SQL</text>
+  '<!-- CREDENTIAL BADGES -->' +
+  '<rect x="52" y="82" width="176" height="28" rx="5" fill="rgba(124,58,237,.1)" stroke="rgba(124,58,237,.3)" stroke-width="1.2"/>' +
+  '<text x="140" y="94" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="8" font-weight="600" text-anchor="middle">Developer Credentials</text>' +
+  '<text x="140" y="104" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="7.5" text-anchor="middle">read · write · deploy</text>' +
 
-      <!-- WAREHOUSE -->
-      <rect x="600" y="100" width="158" height="104" rx="8" fill="rgba(88,166,255,.06)" stroke="#58a6ff" stroke-width="1.5"/>
-      <text x="679" y="123" fill="#58a6ff" font-family="JetBrains Mono,monospace" font-size="9" font-weight="600" text-anchor="middle" letter-spacing=".5">WAREHOUSE</text>
-      <text x="679" y="140" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="8" text-anchor="middle">Snowflake · BigQuery</text>
-      <text x="679" y="155" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="8" text-anchor="middle">Databricks · Redshift</text>
-      <rect x="616" y="166" width="126" height="22" rx="5" fill="rgba(63,185,80,.14)" stroke="#3fb950" stroke-width="1.5"/>
-      <text x="679" y="181" fill="#3fb950" font-family="JetBrains Mono,monospace" font-size="9.5" font-weight="700" text-anchor="middle">READ-ONLY</text>
-      <text x="679" y="211" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="7.5" text-anchor="middle">service account</text>
-    </svg>
-  </div>
+  '<rect x="332" y="82" width="176" height="28" rx="5" fill="rgba(63,185,80,.08)" stroke="rgba(63,185,80,.3)" stroke-width="1.2"/>' +
+  '<text x="420" y="94" fill="#3fb950" font-family="JetBrains Mono,monospace" font-size="8" font-weight="600" text-anchor="middle">Read-Only Credentials</text>' +
+  '<text x="420" y="104" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="7.5" text-anchor="middle">read only</text>' +
 
-  <!-- Three control pillars -->
-  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px">
-    <div style="background:var(--raised);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center">
-      <div style="margin-bottom:10px">
-        <svg width="38" height="38" viewBox="0 0 38 38" style="display:inline-block">
-          <circle cx="19" cy="19" r="16" fill="rgba(248,81,73,.12)" stroke="#f85149" stroke-width="2"/>
-          <line x1="13" y1="13" x2="25" y2="25" stroke="#f85149" stroke-width="2.5" stroke-linecap="round"/>
-          <line x1="25" y1="13" x2="13" y2="25" stroke="#f85149" stroke-width="2.5" stroke-linecap="round"/>
-        </svg>
-      </div>
-      <div style="font-family:var(--mono);font-size:9.5px;font-weight:600;color:var(--red);letter-spacing:.5px;margin-bottom:5px">NO RAW SQL</div>
-      <div style="font-size:11px;color:var(--muted);line-height:1.5">MetricFlow generates all SQL. AI can't write its own.</div>
-    </div>
-    <div style="background:var(--raised);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center">
-      <div style="margin-bottom:10px">
-        <svg width="38" height="38" viewBox="0 0 38 38" style="display:inline-block">
-          <rect x="10" y="19" width="18" height="14" rx="3" fill="rgba(124,58,237,.2)" stroke="#a78bfa" stroke-width="1.5"/>
-          <path d="M13 19 L13 14 C13 8.5 25 8.5 25 14 L25 19" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round"/>
-          <circle cx="19" cy="26" r="2.5" fill="#a78bfa"/>
-        </svg>
-      </div>
-      <div style="font-family:var(--mono);font-size:9.5px;font-weight:600;color:var(--pl);letter-spacing:.5px;margin-bottom:5px">METRICS ONLY</div>
-      <div style="font-size:11px;color:var(--muted);line-height:1.5">Only metrics defined in YAML are queryable. Governance in code.</div>
-    </div>
-    <div style="background:var(--raised);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center">
-      <div style="margin-bottom:10px">
-        <svg width="38" height="38" viewBox="0 0 38 38" style="display:inline-block">
-          <rect x="8" y="5" width="22" height="28" rx="3" fill="rgba(88,166,255,.1)" stroke="#58a6ff" stroke-width="1.5"/>
-          <line x1="13" y1="13" x2="25" y2="13" stroke="#58a6ff" stroke-width="1.5" stroke-linecap="round" opacity=".5"/>
-          <line x1="13" y1="18" x2="25" y2="18" stroke="#58a6ff" stroke-width="1.5" stroke-linecap="round" opacity=".5"/>
-          <line x1="13" y1="23" x2="21" y2="23" stroke="#58a6ff" stroke-width="1.5" stroke-linecap="round" opacity=".5"/>
-          <circle cx="28" cy="29" r="6" fill="var(--raised)" stroke="#58a6ff" stroke-width="1.5"/>
-          <line x1="26" y1="29" x2="30" y2="29" stroke="#58a6ff" stroke-width="1.5" stroke-linecap="round"/>
-          <line x1="28" y1="27" x2="28" y2="31" stroke="#58a6ff" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-      </div>
-      <div style="font-family:var(--mono);font-size:9.5px;font-weight:600;color:var(--blue);letter-spacing:.5px;margin-bottom:5px">AUDIT TRAIL</div>
-      <div style="font-size:11px;color:var(--muted);line-height:1.5">Who asked. What ran. When. Every query logged.</div>
-    </div>
-  </div>
+  '<rect x="612" y="82" width="176" height="28" rx="5" fill="rgba(210,153,34,.08)" stroke="rgba(210,153,34,.3)" stroke-width="1.2"/>' +
+  '<text x="700" y="94" fill="#d29922" font-family="JetBrains Mono,monospace" font-size="8" font-weight="600" text-anchor="middle">Service Account</text>' +
+  '<text x="700" y="104" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="7.5" text-anchor="middle">inherits dbt role</text>' +
 
-  <!-- Enterprise seat types -->
-  <div style="background:var(--raised);border:1px solid var(--border);border-radius:10px;padding:14px 16px">
-    <div style="font-family:var(--mono);font-size:8px;letter-spacing:1.5px;color:var(--muted);margin-bottom:10px">ENTERPRISE SEAT TYPES</div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap">
-      <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:190px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px">
-        <svg width="30" height="30" viewBox="0 0 30 30" style="flex-shrink:0">
-          <circle cx="15" cy="15" r="13" fill="rgba(124,58,237,.15)" stroke="rgba(124,58,237,.4)" stroke-width="1.5"/>
-          <circle cx="15" cy="12" r="4" fill="none" stroke="#a78bfa" stroke-width="1.5"/>
-          <path d="M7 25 C7 19 23 19 23 25" fill="none" stroke="#a78bfa" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-        <div>
-          <div style="font-family:var(--mono);font-size:9.5px;font-weight:600;color:var(--pl)">DEVELOPER</div>
-          <div style="font-size:10px;color:var(--muted);margin-top:2px">create · modify · deploy</div>
-        </div>
-      </div>
-      <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:190px;background:var(--bg);border:1px solid rgba(63,185,80,.3);border-radius:8px;padding:10px 14px">
-        <svg width="30" height="30" viewBox="0 0 30 30" style="flex-shrink:0">
-          <circle cx="15" cy="15" r="13" fill="rgba(63,185,80,.12)" stroke="rgba(63,185,80,.4)" stroke-width="1.5"/>
-          <ellipse cx="15" cy="15" rx="7" ry="4.5" fill="none" stroke="#3fb950" stroke-width="1.5"/>
-          <circle cx="15" cy="15" r="2" fill="#3fb950"/>
-        </svg>
-        <div>
-          <div style="font-family:var(--mono);font-size:9.5px;font-weight:600;color:var(--green)">READ-ONLY <span style="color:var(--muted);font-weight:400;font-size:8px">— AI use cases</span></div>
-          <div style="font-size:10px;color:var(--muted);margin-top:2px">query metrics · explore catalog · no writes</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>`;
+  '<!-- Arrows into dbt band -->' +
+  '<line x1="140" y1="110" x2="140" y2="136" stroke="#7c3aed" stroke-width="1.5" marker-end="url(#g-p)" opacity=".7"/>' +
+  '<line x1="420" y1="110" x2="420" y2="136" stroke="#3fb950" stroke-width="1.5" marker-end="url(#g-g)" opacity=".7"/>' +
+  '<line x1="700" y1="110" x2="700" y2="136" stroke="#d29922" stroke-width="1.5" marker-end="url(#g-a)" opacity=".7"/>' +
+
+  '<!-- dbt GOVERNANCE BAND -->' +
+  '<rect x="10" y="138" width="820" height="52" rx="8" fill="rgba(255,107,53,.04)" stroke="#ff6b35" stroke-width="1.5" stroke-dasharray="4,3"/>' +
+  '<text x="420" y="157" fill="#ff6b35" font-family="JetBrains Mono,monospace" font-size="8.5" font-weight="600" text-anchor="middle" letter-spacing="1.5">dbt GOVERNANCE LAYER</text>' +
+  '<text x="420" y="171" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="8" text-anchor="middle">tests · lineage · documentation · role-based access · audit logs</text>' +
+
+  '<!-- Arrows out of dbt band -->' +
+  '<line x1="140" y1="190" x2="140" y2="216" stroke="#7c3aed" stroke-width="1.5" marker-end="url(#g-p)" opacity=".7"/>' +
+  '<line x1="420" y1="190" x2="420" y2="216" stroke="#3fb950" stroke-width="1.5" marker-end="url(#g-g)" opacity=".7"/>' +
+  '<line x1="700" y1="190" x2="700" y2="216" stroke="#d29922" stroke-width="1.5" marker-end="url(#g-a)" opacity=".7"/>' +
+
+  '<!-- WAREHOUSE ROLES (Dev + Read-Only) -->' +
+  '<rect x="62" y="218" width="156" height="26" rx="5" fill="rgba(124,58,237,.08)" stroke="rgba(124,58,237,.25)" stroke-width="1.2"/>' +
+  '<text x="140" y="230" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="8" font-weight="600" text-anchor="middle">Transformer Role</text>' +
+  '<text x="140" y="240" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="7.5" text-anchor="middle">read + write models</text>' +
+
+  '<rect x="342" y="218" width="156" height="26" rx="5" fill="rgba(63,185,80,.06)" stroke="rgba(63,185,80,.25)" stroke-width="1.2"/>' +
+  '<text x="420" y="230" fill="#3fb950" font-family="JetBrains Mono,monospace" font-size="8" font-weight="600" text-anchor="middle">Reporter Role</text>' +
+  '<text x="420" y="240" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="7.5" text-anchor="middle">read marts &amp; reports</text>' +
+
+  '<!-- SEMANTIC LAYER (AI only — extra gate) -->' +
+  '<rect x="608" y="216" width="184" height="44" rx="7" fill="rgba(124,58,237,.12)" stroke="#7c3aed" stroke-width="2.5"/>' +
+  '<text x="700" y="234" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="9.5" font-weight="600" text-anchor="middle">Semantic Layer</text>' +
+  '<text x="700" y="248" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="8" text-anchor="middle">governed metrics · MetricFlow</text>' +
+  '<text x="700" y="256" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="7.5" text-anchor="middle">no arbitrary SQL</text>' +
+
+  '<!-- Arrows to warehouse -->' +
+  '<line x1="140" y1="244" x2="140" y2="280" stroke="#444c56" stroke-width="1.5" marker-end="url(#g-m)" opacity=".8"/>' +
+  '<line x1="420" y1="244" x2="420" y2="280" stroke="#444c56" stroke-width="1.5" marker-end="url(#g-m)" opacity=".8"/>' +
+  '<line x1="700" y1="260" x2="700" y2="280" stroke="#7c3aed" stroke-width="1.5" marker-end="url(#g-p)" opacity=".8"/>' +
+
+  '<!-- WAREHOUSE -->' +
+  '<rect x="10" y="282" width="820" height="36" rx="7" fill="rgba(88,166,255,.06)" stroke="#58a6ff" stroke-width="1.5"/>' +
+  '<text x="420" y="297" fill="#58a6ff" font-family="JetBrains Mono,monospace" font-size="9" font-weight="600" text-anchor="middle" letter-spacing=".5">WAREHOUSE</text>' +
+  '<text x="420" y="310" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="7.5" text-anchor="middle">Snowflake · BigQuery · Databricks · Redshift</text>' +
+  '</svg>' +
+  '</div>' +
+  capsHtml +
+  '</div>';
 }
 
 var STEPS = [

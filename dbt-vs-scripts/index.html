@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>dbt vs Python Scripts — Interactive Walkthrough</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',sans-serif;background:#0e1117;color:#e6edf3;min-height:100vh;overflow-x:hidden}
+.app{max-width:1020px;margin:0 auto;padding:40px 20px 80px}
+
+.hdr{text-align:center;margin-bottom:40px}
+.hdr-tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#ff6b35;background:rgba(255,107,53,.1);border:1px solid rgba(255,107,53,.25);padding:4px 13px;border-radius:99px;margin-bottom:14px}
+.hdr h1{font-size:clamp(22px,4vw,36px);font-weight:600;line-height:1.2;margin-bottom:10px;color:#fff}
+.hdr p{color:#8b949e;font-size:14px;max-width:520px;margin:0 auto;line-height:1.6}
+
+.nav{display:flex;align-items:center;margin-bottom:32px;background:#161b22;border:1px solid #2d333b;border-radius:12px;padding:5px;gap:3px;flex-wrap:wrap}
+.nav-step{flex:1;min-width:80px;display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 6px;border-radius:8px;cursor:pointer;border:none;background:transparent;color:#8b949e;transition:all .2s;font-family:'DM Sans',sans-serif}
+.nav-step:hover{background:#1c2129;color:#e6edf3}
+.nav-step.active{background:#ff6b35;color:#fff;box-shadow:0 2px 10px rgba(255,107,53,.3)}
+.nav-step.done .step-num{background:rgba(63,185,80,.25);color:#3fb950}
+.step-num{width:19px;height:19px;border-radius:50%;background:rgba(255,255,255,.1);font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.nav-step.active .step-num{background:rgba(255,255,255,.25)}
+.step-lbl{font-size:11px;font-weight:500;text-align:center;line-height:1.3}
+
+.panel{display:none;animation:fi .3s ease}
+.panel.active{display:block}
+@keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+
+.hint{display:flex;align-items:flex-start;gap:11px;background:#161b22;border:1px solid #2d333b;border-radius:9px;padding:14px 16px;margin-bottom:20px;font-size:13px;color:#8b949e;line-height:1.55}
+.hint-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+.hint strong{color:#e6edf3}
+
+.code-wrap{border-radius:9px;overflow:hidden;border:2px solid #2d333b;margin-bottom:12px;transition:border-color .2s}
+.code-head{display:flex;align-items:center;justify-content:space-between;padding:9px 15px;background:#161b22;border-bottom:1px solid #2d333b}
+.lbl{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.3px}
+.badge{font-family:'JetBrains Mono',monospace;font-size:9px;padding:2px 8px;border-radius:99px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.code-body{background:#0d1117;padding:15px 17px;overflow-x:auto}
+.code-body pre{font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:1.72;color:#e6edf3;white-space:pre}
+
+.il{display:block;margin:0 -17px;padding:0 17px;border-left:3px solid #f85149;background:rgba(248,81,73,.09)}
+.wl{display:block;margin:0 -17px;padding:0 17px;border-left:3px solid #d29922;background:rgba(210,153,34,.07)}
+.in{color:#f85149;font-size:10px;font-style:italic}
+.wn{color:#d29922;font-size:10px;font-style:italic}
+
+.tmp-block{cursor:pointer}
+.tmp-block .code-head::after{content:'click to see in dbt →';font-family:'DM Sans',sans-serif;font-size:10px;color:#58a6ff;opacity:.6;font-weight:500}
+.tmp-block:hover{border-color:#58a6ff}
+.tmp-block:hover .code-head::after{opacity:1}
+.tmp-block.expanded{border-color:#3fb950}
+.tmp-block.expanded .code-head::after{content:'▲ collapse';opacity:.5}
+.transform-reveal{display:none;border-top:1px solid #2d333b}
+.transform-reveal.show{display:block}
+.t-arrow{display:flex;align-items:center;gap:9px;padding:9px 17px;background:#0a120a;border-bottom:1px dashed #2d333b}
+.t-arrow span{font-size:10px;color:#8b949e;font-family:'JetBrains Mono',monospace}
+.t-arrow .arr{color:#3fb950;font-weight:600}
+.dbt-reveal{padding:13px 17px;background:#080f08}
+.dbt-reveal pre{font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:1.72;white-space:pre;color:#e6edf3}
+.what-changed{background:#0c1a0c;border:1px solid rgba(63,185,80,.18);border-radius:7px;padding:11px 13px;margin-top:9px;font-size:12px;line-height:1.6;color:#8b949e}
+.what-changed strong{color:#3fb950}
+
+.stg{border-color:#58a6ff}.stg .code-head{background:rgba(88,166,255,.06)}.stg .lbl{color:#58a6ff}.stg .badge{background:rgba(88,166,255,.14);color:#58a6ff}
+.int{border-color:#d29922}.int .code-head{background:rgba(210,153,34,.06)}.int .lbl{color:#d29922}.int .badge{background:rgba(210,153,34,.14);color:#d29922}
+.mart{border-color:#3fb950}.mart .code-head{background:rgba(63,185,80,.06)}.mart .lbl{color:#3fb950}.mart .badge{background:rgba(63,185,80,.14);color:#3fb950}
+
+.naming-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+.naming-card{flex:1;min-width:180px;background:#161b22;border:1px solid #2d333b;border-radius:9px;padding:13px 15px}
+.naming-card .prefix{font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:600;margin-bottom:5px}
+.naming-card .meaning{font-size:12px;color:#8b949e;line-height:1.5}
+.naming-card.stg-c .prefix{color:#58a6ff}
+.naming-card.int-c .prefix{color:#d29922}
+.naming-card.mart-c .prefix{color:#3fb950}
+
+.src-box{background:#161b22;border:1px solid #2d333b;border-radius:9px;padding:14px 16px;margin-bottom:16px}
+.src-box h4{font-size:11px;font-weight:600;margin-bottom:10px;color:#8b949e;text-transform:uppercase;letter-spacing:1px;font-family:'JetBrains Mono',monospace}
+.src-row{display:flex;align-items:center;gap:8px;margin-bottom:7px;font-size:12px;flex-wrap:wrap}
+.raw-s{color:#8b949e;font-family:'JetBrains Mono',monospace}
+.arr-s{color:#444c56}
+.fn-s{color:#d2a8ff;font-family:'JetBrains Mono',monospace}
+.ref-s{color:#58a6ff;font-family:'JetBrains Mono',monospace}
+
+.par-wrap{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
+.par-block{background:#161b22;border:1px solid #2d333b;border-radius:9px;padding:14px 16px}
+.par-block h4{font-size:11px;font-weight:600;margin-bottom:12px;color:#8b949e;text-transform:uppercase;letter-spacing:1px;font-family:'JetBrains Mono',monospace}
+.bar-row{display:flex;align-items:center;gap:7px;margin-bottom:6px}
+.bar-lbl{font-family:'JetBrains Mono',monospace;font-size:9px;color:#8b949e;min-width:52px;text-align:right}
+.bar-track{flex:1;height:22px;background:rgba(255,255,255,.03);border-radius:4px;position:relative;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;display:flex;align-items:center;padding:0 7px;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;color:rgba(255,255,255,.9);position:absolute;top:0;white-space:nowrap}
+
+.dag-wrap{overflow-x:auto;padding:10px 0;margin-bottom:16px}
+
+.debug-scenario{margin-bottom:12px;border-radius:9px;overflow:hidden;border:1px solid #2d333b}
+.debug-trigger{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;cursor:pointer;background:#161b22;user-select:none}
+.debug-trigger:hover{background:#1c2129}
+.debug-trigger .sname{font-size:13px;font-weight:500}
+.chevron{color:#8b949e;font-size:11px;transition:transform .2s}
+.debug-trigger.open .chevron{transform:rotate(180deg)}
+.debug-body{display:none}
+.debug-body.show{display:block}
+.debug-split{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid #2d333b}
+.dc{padding:13px 15px}
+.dc:first-child{border-right:1px solid #2d333b;background:rgba(248,81,73,.03)}
+.dc:last-child{background:rgba(63,185,80,.03)}
+.dc .ch{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;font-family:'JetBrains Mono',monospace;margin-bottom:7px}
+.dc:first-child .ch{color:#f85149}
+.dc:last-child .ch{color:#3fb950}
+.dc p{font-size:12px;color:#8b949e;line-height:1.6}
+.dc code{font-family:'JetBrains Mono',monospace;font-size:10px;background:rgba(255,255,255,.07);padding:1px 4px;border-radius:3px;color:#e6edf3}
+.debug-note{font-size:12px;color:#8b949e;padding:10px 15px;background:#0e1117;border-top:1px solid #2d333b;line-height:1.55}
+.debug-note strong{color:#e6edf3}
+
+.ann{margin-top:16px;padding:13px 15px;background:rgba(255,107,53,.05);border:1px solid rgba(255,107,53,.18);border-radius:8px;font-size:12px;line-height:1.6;color:#8b949e}
+.ann strong{color:#ff6b35}
+.ann.ok{background:rgba(63,185,80,.04);border-color:rgba(63,185,80,.18)}
+.ann.ok strong{color:#3fb950}
+.ann.danger{background:rgba(248,81,73,.04);border-color:rgba(248,81,73,.18)}
+.ann.danger strong{color:#f85149}
+
+.bottom-nav{display:flex;justify-content:space-between;align-items:center;margin-top:28px;padding-top:20px;border-top:1px solid #2d333b}
+.btn-nav{padding:9px 18px;border-radius:7px;border:1px solid #2d333b;background:transparent;color:#8b949e;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all .2s}
+.btn-nav:hover:not(:disabled){background:#161b22;color:#e6edf3}
+.btn-nav.primary{background:#ff6b35;border-color:#ff6b35;color:#fff}
+.btn-nav.primary:hover{opacity:.9}
+.btn-nav:disabled{opacity:.25;cursor:default}
+.step-ind{font-size:11px;color:#8b949e;font-family:'JetBrains Mono',monospace}
+
+@media(max-width:580px){
+  .par-wrap{grid-template-columns:1fr}
+  .debug-split{grid-template-columns:1fr}
+  .dc:first-child{border-right:none;border-bottom:1px solid #2d333b}
+  .naming-row{flex-direction:column}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="hdr">
+  <div class="hdr-tag">dbt 101</div>
+  <h1>From Python scripts to dbt</h1>
+  <p>An interactive walkthrough. Follow the steps — each one builds on the last so you can see exactly what changes and why.</p>
+</div>
+
+<div class="nav">
+  <button class="nav-step active" onclick="go(0)"><span class="step-num">1</span><span class="step-lbl">The script</span></button>
+  <button class="nav-step" onclick="go(1)"><span class="step-num">2</span><span class="step-lbl">Breaking it apart</span></button>
+  <button class="nav-step" onclick="go(2)"><span class="step-num">3</span><span class="step-lbl">Where data comes from</span></button>
+  <button class="nav-step" onclick="go(3)"><span class="step-num">4</span><span class="step-lbl">What runs &amp; when</span></button>
+  <button class="nav-step" onclick="go(4)"><span class="step-num">5</span><span class="step-lbl">When things break</span></button>
+</div>
+
+<!-- TAB 1: THE FULL SCRIPT -->
+<div class="panel active" id="p0">
+  <div class="hint">
+    <span class="hint-icon">💡</span>
+    <div>This is a complete Python pipeline — the kind you'd inherit today. It builds a customer order summary using pandas. <strong>Highlighted lines</strong> are the things that create problems at scale. Read the inline labels, then move to the next tab to see how dbt solves each one.</div>
+  </div>
+
+  <div class="code-wrap" style="border-color:#f85149">
+    <div class="code-head" style="background:rgba(248,81,73,.05)">
+      <span class="lbl" style="color:#f85149">build_customer_summary.py — full pipeline script</span>
+      <span class="badge" style="background:rgba(248,81,73,.14);color:#f85149">1 file · ~45 lines</span>
+    </div>
+    <div class="code-body"><pre><span style="color:#ff7b72">import</span> pandas <span style="color:#ff7b72">as</span> pd
+<span style="color:#ff7b72">import</span> sqlalchemy <span style="color:#ff7b72">as</span> sa
+
+<span class="il">engine = sa.create_engine(<span style="color:#a5d6ff">"postgresql://prod-warehouse:5432/db"</span>)  <span class="in">⚠ hardcoded connection — no dev/prod separation</span></span>
+
+<span style="color:#8b949e"># Step 1: clean customers</span>
+<span class="il">tmp_customers = pd.read_sql(<span style="color:#a5d6ff">"SELECT * FROM raw.customers"</span>, engine)  <span class="in">⚠ hardcoded schema — rename breaks silently</span></span>
+tmp_customers[<span style="color:#a5d6ff">'email'</span>] = tmp_customers[<span style="color:#a5d6ff">'email'</span>].str.lower().str.strip()
+tmp_customers[<span style="color:#a5d6ff">'first_name'</span>] = tmp_customers[<span style="color:#a5d6ff">'first_name'</span>].fillna(<span style="color:#a5d6ff">'Unknown'</span>)
+tmp_customers[<span style="color:#a5d6ff">'last_name'</span>] = tmp_customers[<span style="color:#a5d6ff">'last_name'</span>].fillna(<span style="color:#a5d6ff">'Unknown'</span>)
+tmp_customers[<span style="color:#a5d6ff">'region'</span>] = tmp_customers[<span style="color:#a5d6ff">'region'</span>].fillna(<span style="color:#a5d6ff">'Unassigned'</span>).str.upper()
+
+<span style="color:#8b949e"># Step 2: clean orders</span>
+<span class="il">tmp_orders = pd.read_sql(<span style="color:#a5d6ff">"SELECT * FROM raw.orders"</span>, engine)  <span class="in">⚠ hardcoded schema</span></span>
+tmp_orders = tmp_orders[
+    tmp_orders[<span style="color:#a5d6ff">'order_id'</span>].notna() &amp; (tmp_orders[<span style="color:#a5d6ff">'status'</span>] != <span style="color:#a5d6ff">'cancelled'</span>)
+][[<span style="color:#a5d6ff">'order_id'</span>, <span style="color:#a5d6ff">'customer_id'</span>, <span style="color:#a5d6ff">'order_date'</span>, <span style="color:#a5d6ff">'status'</span>, <span style="color:#a5d6ff">'total_amount'</span>]]
+
+<span style="color:#8b949e"># Step 3: clean payments</span>
+<span class="il">tmp_payments = pd.read_sql(<span style="color:#a5d6ff">"SELECT * FROM raw.payments"</span>, engine)  <span class="in">⚠ hardcoded schema</span></span>
+tmp_payments = tmp_payments[
+    tmp_payments[<span style="color:#a5d6ff">'payment_id'</span>].notna() &amp; (tmp_payments[<span style="color:#a5d6ff">'amount'</span>] &gt; <span style="color:#79c0ff">0</span>)
+].rename(columns={<span style="color:#a5d6ff">'amount'</span>: <span style="color:#a5d6ff">'payment_amount'</span>, <span style="color:#a5d6ff">'created_at'</span>: <span style="color:#a5d6ff">'payment_date'</span>})
+
+<span class="wl"><span style="color:#8b949e"># Step 4: join orders + payments  <span class="wn">⚡ must wait for steps 2 &amp; 3 — no parallelism possible</span></span></span>
+agg = tmp_payments.groupby(<span style="color:#a5d6ff">'order_id'</span>).agg(
+    total_paid=(<span style="color:#a5d6ff">'payment_amount'</span>, <span style="color:#a5d6ff">'sum'</span>),
+    payment_count=(<span style="color:#a5d6ff">'payment_id'</span>, <span style="color:#a5d6ff">'count'</span>)
+).reset_index()
+tmp_orders_with_payments = tmp_orders.merge(agg, on=<span style="color:#a5d6ff">'order_id'</span>, how=<span style="color:#a5d6ff">'left'</span>)
+tmp_orders_with_payments[<span style="color:#a5d6ff">'outstanding_balance'</span>] = (
+    tmp_orders_with_payments[<span style="color:#a5d6ff">'total_amount'</span>]
+    - tmp_orders_with_payments[<span style="color:#a5d6ff">'total_paid'</span>].fillna(<span style="color:#79c0ff">0</span>)
+)
+
+<span style="color:#8b949e"># Step 5: final summary</span>
+summary = tmp_customers.merge(
+    tmp_orders_with_payments, on=<span style="color:#a5d6ff">'customer_id'</span>, how=<span style="color:#a5d6ff">'left'</span>
+)
+result = summary.groupby(
+    [<span style="color:#a5d6ff">'customer_id'</span>, <span style="color:#a5d6ff">'email'</span>, <span style="color:#a5d6ff">'first_name'</span>, <span style="color:#a5d6ff">'last_name'</span>, <span style="color:#a5d6ff">'region'</span>]
+).agg(
+    lifetime_orders=(<span style="color:#a5d6ff">'order_id'</span>, <span style="color:#a5d6ff">'count'</span>),
+    lifetime_revenue=(<span style="color:#a5d6ff">'total_amount'</span>, <span style="color:#a5d6ff">'sum'</span>),
+    lifetime_payments=(<span style="color:#a5d6ff">'total_paid'</span>, <span style="color:#a5d6ff">'sum'</span>),
+    most_recent_order_date=(<span style="color:#a5d6ff">'order_date'</span>, <span style="color:#a5d6ff">'max'</span>)
+).reset_index()
+
+<span class="il">result.to_sql(<span style="color:#a5d6ff">'fct_customer_order_summary'</span>, engine,  <span class="in">⚠ full overwrite every run — no incremental option</span></span>
+<span class="il">             schema=<span style="color:#a5d6ff">'analytics'</span>, if_exists=<span style="color:#a5d6ff">'replace'</span>, index=<span style="color:#ff7b72">False</span>)</span>
+
+<span class="il"><span style="color:#8b949e"># Script ends. All 5 DataFrames dropped from memory.
+# If step 4 failed: nothing survives to inspect.  <span class="in">⚠ debug from scratch</span></span></span></pre>
+    </div>
+  </div>
+
+  <div class="ann danger">
+    <strong>What you're looking at:</strong> One file, 5 logical steps, all data loaded into Python memory, hardcoded connection strings and schema names, full table overwrite on every run, and zero intermediate state when something fails. It works — until it doesn't. The next tab shows what dbt does differently.
+  </div>
+</div>
+
+<!-- TAB 2: BREAKING IT APART -->
+<div class="panel" id="p1">
+  <div class="hint">
+    <span class="hint-icon">🧩</span>
+    <div>The Python script is one file. dbt breaks it into 5 files — one per logical step. <strong>Click each block</strong> to see how that step translates into dbt, and exactly what changes.</div>
+  </div>
+
+  <div class="code-wrap tmp-block" id="tmp1" onclick="toggleTmp('tmp1','dbt1')">
+    <div class="code-head" style="background:rgba(248,81,73,.05)"><span class="lbl" style="color:#f85149">tmp_customers = pd.read_sql(...)</span><span class="badge" style="background:rgba(248,81,73,.14);color:#f85149">DataFrame in memory</span></div>
+    <div class="code-body"><pre><span class="il">tmp_customers = pd.read_sql(<span style="color:#a5d6ff">"SELECT * FROM raw.customers"</span>, engine)  <span class="in">⚠ hardcoded schema name</span></span>
+tmp_customers[<span style="color:#a5d6ff">'email'</span>] = tmp_customers[<span style="color:#a5d6ff">'email'</span>].str.lower().str.strip()
+tmp_customers[<span style="color:#a5d6ff">'first_name'</span>] = tmp_customers[<span style="color:#a5d6ff">'first_name'</span>].fillna(<span style="color:#a5d6ff">'Unknown'</span>)
+tmp_customers[<span style="color:#a5d6ff">'last_name'</span>] = tmp_customers[<span style="color:#a5d6ff">'last_name'</span>].fillna(<span style="color:#a5d6ff">'Unknown'</span>)
+tmp_customers[<span style="color:#a5d6ff">'region'</span>] = tmp_customers[<span style="color:#a5d6ff">'region'</span>].fillna(<span style="color:#a5d6ff">'Unassigned'</span>).str.upper()</pre></div>
+    <div class="transform-reveal" id="dbt1">
+      <div class="t-arrow"><span class="arr">↓</span><span>becomes → <strong style="color:#3fb950">models/staging/stg_customers.sql</strong></span></div>
+      <div class="dbt-reveal">
+        <pre><span style="color:#8b949e">-- No imports. No engine. Just SELECT.</span>
+<span style="color:#ff7b72">SELECT</span>
+    customer_id,
+    <span style="color:#79c0ff">TRIM</span>(<span style="color:#79c0ff">LOWER</span>(email))               <span style="color:#ff7b72">AS</span> email,
+    <span style="color:#79c0ff">COALESCE</span>(first_name, <span style="color:#a5d6ff">'Unknown'</span>)  <span style="color:#ff7b72">AS</span> first_name,
+    <span style="color:#79c0ff">COALESCE</span>(last_name,  <span style="color:#a5d6ff">'Unknown'</span>)  <span style="color:#ff7b72">AS</span> last_name,
+    <span style="color:#ff7b72">CASE WHEN</span> region <span style="color:#ff7b72">IS NULL THEN</span> <span style="color:#a5d6ff">'Unassigned'</span> <span style="color:#ff7b72">ELSE</span> <span style="color:#79c0ff">UPPER</span>(region) <span style="color:#ff7b72">END</span> <span style="color:#ff7b72">AS</span> region,
+    created_at
+<span style="color:#ff7b72">FROM</span> {{ <span style="color:#d2a8ff">source</span>(<span style="color:#a5d6ff">'raw'</span>, <span style="color:#a5d6ff">'customers'</span>) }}</pre>
+        <div class="what-changed"><strong>What changed:</strong> The transformation logic is identical — just SQL now. No Python runtime, no memory limits, no network transfer of raw data. <code>pd.read_sql("... FROM raw.customers")</code> becomes <code>source('raw','customers')</code> — dbt registers this as an official data entry point it can test, monitor for freshness, and alert on. The result is a real, persistent, queryable table in your warehouse, not a variable that lives and dies with one script run.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="code-wrap tmp-block" id="tmp2" onclick="toggleTmp('tmp2','dbt2')">
+    <div class="code-head" style="background:rgba(248,81,73,.05)"><span class="lbl" style="color:#f85149">tmp_orders = pd.read_sql(...)</span><span class="badge" style="background:rgba(248,81,73,.14);color:#f85149">DataFrame in memory</span></div>
+    <div class="code-body"><pre><span class="il">tmp_orders = pd.read_sql(<span style="color:#a5d6ff">"SELECT * FROM raw.orders"</span>, engine)  <span class="in">⚠ hardcoded schema name</span></span>
+tmp_orders = tmp_orders[
+    tmp_orders[<span style="color:#a5d6ff">'order_id'</span>].notna() &amp; (tmp_orders[<span style="color:#a5d6ff">'status'</span>] != <span style="color:#a5d6ff">'cancelled'</span>)
+][[<span style="color:#a5d6ff">'order_id'</span>, <span style="color:#a5d6ff">'customer_id'</span>, <span style="color:#a5d6ff">'order_date'</span>, <span style="color:#a5d6ff">'status'</span>, <span style="color:#a5d6ff">'total_amount'</span>]]</pre></div>
+    <div class="transform-reveal" id="dbt2">
+      <div class="t-arrow"><span class="arr">↓</span><span>becomes → <strong style="color:#3fb950">models/staging/stg_orders.sql</strong></span></div>
+      <div class="dbt-reveal">
+        <pre><span style="color:#ff7b72">SELECT</span> order_id, customer_id, order_date, status, total_amount
+<span style="color:#ff7b72">FROM</span> {{ <span style="color:#d2a8ff">source</span>(<span style="color:#a5d6ff">'raw'</span>, <span style="color:#a5d6ff">'orders'</span>) }}
+<span style="color:#ff7b72">WHERE</span> order_id <span style="color:#ff7b72">IS NOT NULL</span> <span style="color:#ff7b72">AND</span> status != <span style="color:#a5d6ff">'cancelled'</span></pre>
+        <div class="what-changed"><strong>What changed:</strong> Same filter logic, now a standalone file. When another team builds a revenue pipeline and needs clean orders, they reference <code>ref('stg_orders')</code> instead of copy-pasting the filter logic into their own script. In the Python world, "what is a valid order" ends up defined in five different scripts — and they drift.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="code-wrap tmp-block" id="tmp3" onclick="toggleTmp('tmp3','dbt3')">
+    <div class="code-head" style="background:rgba(248,81,73,.05)"><span class="lbl" style="color:#f85149">tmp_payments = pd.read_sql(...)</span><span class="badge" style="background:rgba(248,81,73,.14);color:#f85149">DataFrame in memory</span></div>
+    <div class="code-body"><pre><span class="il">tmp_payments = pd.read_sql(<span style="color:#a5d6ff">"SELECT * FROM raw.payments"</span>, engine)  <span class="in">⚠ hardcoded schema name</span></span>
+tmp_payments = tmp_payments[
+    tmp_payments[<span style="color:#a5d6ff">'payment_id'</span>].notna() &amp; (tmp_payments[<span style="color:#a5d6ff">'amount'</span>] &gt; <span style="color:#79c0ff">0</span>)
+].rename(columns={<span style="color:#a5d6ff">'amount'</span>: <span style="color:#a5d6ff">'payment_amount'</span>, <span style="color:#a5d6ff">'created_at'</span>: <span style="color:#a5d6ff">'payment_date'</span>})</pre></div>
+    <div class="transform-reveal" id="dbt3">
+      <div class="t-arrow"><span class="arr">↓</span><span>becomes → <strong style="color:#3fb950">models/staging/stg_payments.sql</strong></span></div>
+      <div class="dbt-reveal">
+        <pre><span style="color:#ff7b72">SELECT</span>
+    payment_id, order_id, payment_method,
+    amount     <span style="color:#ff7b72">AS</span> payment_amount,
+    created_at <span style="color:#ff7b72">AS</span> payment_date
+<span style="color:#ff7b72">FROM</span> {{ <span style="color:#d2a8ff">source</span>(<span style="color:#a5d6ff">'raw'</span>, <span style="color:#a5d6ff">'payments'</span>) }}
+<span style="color:#ff7b72">WHERE</span> payment_id <span style="color:#ff7b72">IS NOT NULL</span> <span style="color:#ff7b72">AND</span> amount &gt; <span style="color:#79c0ff">0</span></pre>
+        <div class="what-changed"><strong>What changed:</strong> Same transformation. Now steps 1, 2, and 3 are three independent files with no dependency on each other — dbt can run all three in parallel. The Python script was forced to run them serially simply because that's how a single-threaded script works.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="code-wrap tmp-block" id="tmp4" onclick="toggleTmp('tmp4','dbt4')">
+    <div class="code-head" style="background:rgba(210,153,34,.05)"><span class="lbl" style="color:#d29922">tmp_orders_with_payments = tmp_orders.merge(...)</span><span class="badge" style="background:rgba(210,153,34,.14);color:#d29922">Join step</span></div>
+    <div class="code-body"><pre><span class="wl">agg = tmp_payments.groupby(<span style="color:#a5d6ff">'order_id'</span>).agg(  <span class="wn">⚡ must wait for steps 2 &amp; 3 — enforced by you, not the system</span></span>
+    total_paid=(<span style="color:#a5d6ff">'payment_amount'</span>, <span style="color:#a5d6ff">'sum'</span>),
+    payment_count=(<span style="color:#a5d6ff">'payment_id'</span>, <span style="color:#a5d6ff">'count'</span>)
+).reset_index()
+tmp_orders_with_payments = tmp_orders.merge(agg, on=<span style="color:#a5d6ff">'order_id'</span>, how=<span style="color:#a5d6ff">'left'</span>)
+tmp_orders_with_payments[<span style="color:#a5d6ff">'outstanding_balance'</span>] = (
+    tmp_orders_with_payments[<span style="color:#a5d6ff">'total_amount'</span>]
+    - tmp_orders_with_payments[<span style="color:#a5d6ff">'total_paid'</span>].fillna(<span style="color:#79c0ff">0</span>)
+)</pre></div>
+    <div class="transform-reveal" id="dbt4">
+      <div class="t-arrow"><span class="arr">↓</span><span>becomes → <strong style="color:#3fb950">models/intermediate/int_orders_with_payments.sql</strong></span></div>
+      <div class="dbt-reveal">
+        <pre><span style="color:#ff7b72">SELECT</span>
+    o.order_id, o.customer_id, o.order_date, o.total_amount,
+    <span style="color:#79c0ff">SUM</span>(p.payment_amount)                            <span style="color:#ff7b72">AS</span> total_paid,
+    <span style="color:#79c0ff">COUNT</span>(p.payment_id)                               <span style="color:#ff7b72">AS</span> payment_count,
+    o.total_amount - <span style="color:#79c0ff">COALESCE</span>(<span style="color:#79c0ff">SUM</span>(p.payment_amount), <span style="color:#79c0ff">0</span>) <span style="color:#ff7b72">AS</span> outstanding_balance
+<span style="color:#ff7b72">FROM</span> {{ <span style="color:#d2a8ff">ref</span>(<span style="color:#a5d6ff">'stg_orders'</span>) }} o
+<span style="color:#ff7b72">LEFT JOIN</span> {{ <span style="color:#d2a8ff">ref</span>(<span style="color:#a5d6ff">'stg_payments'</span>) }} p <span style="color:#ff7b72">ON</span> o.order_id = p.order_id
+<span style="color:#ff7b72">GROUP BY</span> o.order_id, o.customer_id, o.order_date, o.total_amount</pre>
+        <div class="what-changed"><strong>What changed:</strong> <code>tmp_orders</code> and <code>tmp_payments</code> (Python variables that exist only during this script run) become <code>ref('stg_orders')</code> and <code>ref('stg_payments')</code> — persistent, queryable warehouse tables. Those <code>ref()</code> calls also declare the dependency: dbt knows to finish both staging models before running this one. You didn't write any orchestration logic — the <code>ref()</code> calls are the orchestration.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="code-wrap tmp-block" id="tmp5" onclick="toggleTmp('tmp5','dbt5')">
+    <div class="code-head" style="background:rgba(248,81,73,.05)"><span class="lbl" style="color:#f85149">result.to_sql('fct_customer_order_summary', ...)</span><span class="badge" style="background:rgba(248,81,73,.14);color:#f85149">Full overwrite</span></div>
+    <div class="code-body"><pre>summary = tmp_customers.merge(tmp_orders_with_payments, on=<span style="color:#a5d6ff">'customer_id'</span>, how=<span style="color:#a5d6ff">'left'</span>)
+result = summary.groupby(
+    [<span style="color:#a5d6ff">'customer_id'</span>, <span style="color:#a5d6ff">'email'</span>, <span style="color:#a5d6ff">'first_name'</span>, <span style="color:#a5d6ff">'last_name'</span>, <span style="color:#a5d6ff">'region'</span>]
+).agg(
+    lifetime_orders=(<span style="color:#a5d6ff">'order_id'</span>, <span style="color:#a5d6ff">'count'</span>),
+    lifetime_revenue=(<span style="color:#a5d6ff">'total_amount'</span>, <span style="color:#a5d6ff">'sum'</span>),
+    lifetime_payments=(<span style="color:#a5d6ff">'total_paid'</span>, <span style="color:#a5d6ff">'sum'</span>),
+    most_recent_order_date=(<span style="color:#a5d6ff">'order_date'</span>, <span style="color:#a5d6ff">'max'</span>)
+).reset_index()
+<span class="il">result.to_sql(<span style="color:#a5d6ff">'fct_customer_order_summary'</span>, engine, schema=<span style="color:#a5d6ff">'analytics'</span>,  <span class="in">⚠ full overwrite every run</span></span>
+<span class="il">             if_exists=<span style="color:#a5d6ff">'replace'</span>, index=<span style="color:#ff7b72">False</span>)</span>
+<span class="il"><span style="color:#8b949e"># Script ends. All 5 DataFrames dropped. Nothing to inspect on failure.  <span class="in">⚠ debug from scratch</span></span></span></pre></div>
+    <div class="transform-reveal" id="dbt5">
+      <div class="t-arrow"><span class="arr">↓</span><span>becomes → <strong style="color:#3fb950">models/marts/fct_customer_order_summary.sql</strong></span></div>
+      <div class="dbt-reveal">
+        <pre><span style="color:#8b949e">-- Materialization strategy (table, incremental, view) is config, not code.</span>
+<span style="color:#ff7b72">SELECT</span>
+    c.customer_id, c.email,
+    c.first_name || <span style="color:#a5d6ff">' '</span> || c.last_name <span style="color:#ff7b72">AS</span> full_name, c.region,
+    <span style="color:#79c0ff">COUNT</span>(op.order_id)                  <span style="color:#ff7b72">AS</span> lifetime_orders,
+    <span style="color:#79c0ff">COALESCE</span>(<span style="color:#79c0ff">SUM</span>(op.total_amount), <span style="color:#79c0ff">0</span>)  <span style="color:#ff7b72">AS</span> lifetime_revenue,
+    <span style="color:#79c0ff">COALESCE</span>(<span style="color:#79c0ff">SUM</span>(op.total_paid), <span style="color:#79c0ff">0</span>)    <span style="color:#ff7b72">AS</span> lifetime_payments,
+    <span style="color:#79c0ff">MAX</span>(op.order_date)                  <span style="color:#ff7b72">AS</span> most_recent_order_date
+<span style="color:#ff7b72">FROM</span> {{ <span style="color:#d2a8ff">ref</span>(<span style="color:#a5d6ff">'stg_customers'</span>) }} c
+<span style="color:#ff7b72">LEFT JOIN</span> {{ <span style="color:#d2a8ff">ref</span>(<span style="color:#a5d6ff">'int_orders_with_payments'</span>) }} op
+    <span style="color:#ff7b72">ON</span> c.customer_id = op.customer_id
+<span style="color:#ff7b72">GROUP BY</span> c.customer_id, c.email, full_name, c.region</pre>
+        <div class="what-changed"><strong>You've now seen all 5 steps.</strong> The transformation logic didn't change. What changed: (1) transformations run in the warehouse, not in Python memory — no memory ceilings, no data transfer overhead; (2) each step is a real, persistent, queryable table — not a variable that vanishes; (3) <code>if_exists='replace'</code> is gone — materialization is a one-line config, not code you have to maintain.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ann danger">
+    <strong>The pattern:</strong> Same transformation logic throughout. What dbt changes is the execution environment and the wrapper — transformations move from Python memory into the warehouse, <code>pd.read_sql("... FROM raw.x")</code> becomes <code>source()</code>, <code>tmp_x</code> variable references become <code>ref()</code>. Those three substitutions unlock everything else.
+  </div>
+</div>
+
+<!-- TAB 3: WHERE DATA COMES FROM -->
+<div class="panel" id="p2">
+  <div class="hint">
+    <span class="hint-icon">📂</span>
+    <div>Before the lineage graph makes sense, it helps to understand what the prefixes mean and how dbt tracks where data enters and flows through the pipeline.</div>
+  </div>
+
+  <div class="naming-row">
+    <div class="naming-card stg-c">
+      <div class="prefix">stg_</div>
+      <div class="meaning"><strong style="color:#e6edf3">Staging</strong> — one file per source table. Cleans, renames, casts. Raw in, usable columns out. Nothing is joined here.</div>
+    </div>
+    <div class="naming-card int-c">
+      <div class="prefix">int_</div>
+      <div class="meaning"><strong style="color:#e6edf3">Intermediate</strong> — joins and transforms that aren't the final output. Shared building blocks between mart models.</div>
+    </div>
+    <div class="naming-card mart-c">
+      <div class="prefix">fct_ / dim_</div>
+      <div class="meaning"><strong style="color:#e6edf3">Marts</strong> — what BI tools and business users actually query. One table per business question.</div>
+    </div>
+  </div>
+
+  <div class="src-box">
+    <h4>source() — where raw data enters</h4>
+    <div class="src-row"><span class="raw-s">pd.read_sql("... FROM raw.customers", engine)</span><span class="arr-s">→</span><span class="fn-s">{{ source('raw', 'customers') }}</span></div>
+    <div class="src-row"><span class="raw-s">pd.read_sql("... FROM raw.orders", engine)</span><span class="arr-s">→</span><span class="fn-s">{{ source('raw', 'orders') }}</span></div>
+    <div class="src-row"><span class="raw-s">pd.read_sql("... FROM raw.payments", engine)</span><span class="arr-s">→</span><span class="fn-s">{{ source('raw', 'payments') }}</span></div>
+    <div style="margin-top:10px;font-size:12px;color:#8b949e;line-height:1.6">The Python script hardcoded schema names and a connection string. If a schema renames, the script throws an error — or worse, silently returns stale data. <code style="font-family:'JetBrains Mono',monospace;font-size:10px;background:rgba(255,255,255,.07);padding:1px 4px;border-radius:3px">source()</code> registers these as official entry points — dbt can test them, check freshness, and alert you before a bad data day becomes a bad dashboard day. It also resolves the correct schema per environment automatically, so dev and prod never share the same hardcoded string.</div>
+  </div>
+
+  <div class="src-box">
+    <h4>ref() — how models depend on each other</h4>
+    <div class="src-row"><span class="raw-s">tmp_orders (Python variable)</span><span class="arr-s">→</span><span class="ref-s">{{ ref('stg_orders') }}</span></div>
+    <div class="src-row"><span class="raw-s">tmp_payments (Python variable)</span><span class="arr-s">→</span><span class="ref-s">{{ ref('stg_payments') }}</span></div>
+    <div class="src-row"><span class="raw-s">tmp_customers, tmp_orders_with_payments</span><span class="arr-s">→</span><span class="ref-s">ref('stg_customers'), ref('int_orders_with_payments')</span></div>
+    <div style="margin-top:10px;font-size:12px;color:#8b949e;line-height:1.6">Every <code>ref()</code> is a declared dependency. dbt reads them all and builds the execution order automatically. You don't write orchestration code — the <code>ref()</code> calls <em>are</em> the orchestration. In the Python script, the order was enforced by line numbers and comments; here it's enforced by the system.</div>
+  </div>
+
+  <div class="dag-wrap">
+    <svg viewBox="0 0 860 390" xmlns="http://www.w3.org/2000/svg" style="width:100%;min-width:560px">
+      <defs>
+        <marker id="arr" viewBox="0 0 10 7" refX="10" refY="3.5" markerWidth="7" markerHeight="5" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 3.5 L 0 7 z" fill="#8b949e"/>
+        </marker>
+      </defs>
+      <text x="78" y="26" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="10" font-weight="600" text-anchor="middle" letter-spacing="1">SOURCES</text>
+      <text x="272" y="26" fill="#58a6ff" font-family="JetBrains Mono,monospace" font-size="10" font-weight="600" text-anchor="middle" letter-spacing="1">STAGING</text>
+      <text x="525" y="26" fill="#d29922" font-family="JetBrains Mono,monospace" font-size="10" font-weight="600" text-anchor="middle" letter-spacing="1">INTERMEDIATE</text>
+      <text x="754" y="26" fill="#3fb950" font-family="JetBrains Mono,monospace" font-size="10" font-weight="600" text-anchor="middle" letter-spacing="1">MARTS</text>
+      <line x1="170" y1="36" x2="170" y2="380" stroke="#2d333b" stroke-width="1" stroke-dasharray="3,5"/>
+      <line x1="385" y1="36" x2="385" y2="380" stroke="#2d333b" stroke-width="1" stroke-dasharray="3,5"/>
+      <line x1="642" y1="36" x2="642" y2="380" stroke="#2d333b" stroke-width="1" stroke-dasharray="3,5"/>
+      <path d="M 138 90 L 170 90" stroke="#8b949e" stroke-width="1.5" fill="none" marker-end="url(#arr)" opacity=".5"/>
+      <path d="M 138 195 L 170 195" stroke="#8b949e" stroke-width="1.5" fill="none" marker-end="url(#arr)" opacity=".5"/>
+      <path d="M 138 300 L 170 300" stroke="#8b949e" stroke-width="1.5" fill="none" marker-end="url(#arr)" opacity=".5"/>
+      <path d="M 352 195 C 395 195 400 228 438 232" stroke="#d29922" stroke-width="2" fill="none" marker-end="url(#arr)" opacity=".6"/>
+      <path d="M 352 300 C 395 300 400 248 438 244" stroke="#d29922" stroke-width="2" fill="none" marker-end="url(#arr)" opacity=".6"/>
+      <path d="M 352 90 C 468 90 545 170 688 192" stroke="#3fb950" stroke-width="2" fill="none" marker-end="url(#arr)" opacity=".5"/>
+      <path d="M 610 238 L 688 212" stroke="#3fb950" stroke-width="2" fill="none" marker-end="url(#arr)" opacity=".6"/>
+      <g><rect x="14" y="66" width="124" height="48" rx="6" fill="#1c2129" stroke="#444c56" stroke-width="1.5"/>
+        <text x="76" y="86" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="9" text-anchor="middle">raw</text>
+        <text x="76" y="102" fill="#e6edf3" font-family="JetBrains Mono,monospace" font-size="10" font-weight="600" text-anchor="middle">customers</text></g>
+      <g><rect x="14" y="171" width="124" height="48" rx="6" fill="#1c2129" stroke="#444c56" stroke-width="1.5"/>
+        <text x="76" y="191" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="9" text-anchor="middle">raw</text>
+        <text x="76" y="207" fill="#e6edf3" font-family="JetBrains Mono,monospace" font-size="10" font-weight="600" text-anchor="middle">orders</text></g>
+      <g><rect x="14" y="276" width="124" height="48" rx="6" fill="#1c2129" stroke="#444c56" stroke-width="1.5"/>
+        <text x="76" y="296" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="9" text-anchor="middle">raw</text>
+        <text x="76" y="312" fill="#e6edf3" font-family="JetBrains Mono,monospace" font-size="10" font-weight="600" text-anchor="middle">payments</text></g>
+      <g><rect x="170" y="66" width="182" height="48" rx="6" fill="rgba(88,166,255,.07)" stroke="#58a6ff" stroke-width="2"/>
+        <text x="261" y="95" fill="#58a6ff" font-family="JetBrains Mono,monospace" font-size="11" font-weight="600" text-anchor="middle">stg_customers</text></g>
+      <g><rect x="170" y="171" width="182" height="48" rx="6" fill="rgba(88,166,255,.07)" stroke="#58a6ff" stroke-width="2"/>
+        <text x="261" y="200" fill="#58a6ff" font-family="JetBrains Mono,monospace" font-size="11" font-weight="600" text-anchor="middle">stg_orders</text></g>
+      <g><rect x="170" y="276" width="182" height="48" rx="6" fill="rgba(88,166,255,.07)" stroke="#58a6ff" stroke-width="2"/>
+        <text x="261" y="305" fill="#58a6ff" font-family="JetBrains Mono,monospace" font-size="11" font-weight="600" text-anchor="middle">stg_payments</text></g>
+      <g><rect x="438" y="214" width="172" height="48" rx="6" fill="rgba(210,153,34,.07)" stroke="#d29922" stroke-width="2"/>
+        <text x="524" y="233" fill="#d29922" font-family="JetBrains Mono,monospace" font-size="9" font-weight="600" text-anchor="middle">int_orders</text>
+        <text x="524" y="249" fill="#d29922" font-family="JetBrains Mono,monospace" font-size="9" font-weight="600" text-anchor="middle">_with_payments</text></g>
+      <g><rect x="688" y="170" width="158" height="54" rx="6" fill="rgba(63,185,80,.07)" stroke="#3fb950" stroke-width="2"/>
+        <text x="767" y="191" fill="#3fb950" font-family="JetBrains Mono,monospace" font-size="9" font-weight="600" text-anchor="middle">fct_customer</text>
+        <text x="767" y="207" fill="#3fb950" font-family="JetBrains Mono,monospace" font-size="9" font-weight="600" text-anchor="middle">_order_summary</text></g>
+      <text x="261" y="368" fill="#8b949e" font-family="DM Sans,sans-serif" font-size="11" text-anchor="middle" font-style="italic">all run in parallel</text>
+      <text x="524" y="368" fill="#8b949e" font-family="DM Sans,sans-serif" font-size="11" text-anchor="middle" font-style="italic">waits for stg_orders + stg_payments</text>
+      <text x="767" y="368" fill="#8b949e" font-family="DM Sans,sans-serif" font-size="11" text-anchor="middle" font-style="italic">final output</text>
+    </svg>
+  </div>
+
+  <div class="ann">
+    <strong>This graph is the Python script made visible.</strong> The script had this same structure — it just wasn't visible. You had to read 45 lines of Python to understand that step 4 depended on steps 2 and 3. dbt makes it explicit, queryable, and documented automatically.
+  </div>
+</div>
+
+<!-- TAB 4: WHAT RUNS & WHEN -->
+<div class="panel" id="p3">
+  <div class="hint">
+    <span class="hint-icon">⚡</span>
+    <div>The Python script runs all 5 steps in sequence — that's the only option in a single-threaded script. dbt reads the dependency graph and runs independent models simultaneously across threads.</div>
+  </div>
+
+  <div class="par-wrap">
+    <div class="par-block">
+      <h4>❌ python script — serial only</h4>
+      <div class="bar-row"><span class="bar-lbl">step 1</span><div class="bar-track"><div class="bar-fill" style="width:20%;background:#58a6ff;left:0%">stg_cust</div></div></div>
+      <div class="bar-row"><span class="bar-lbl">step 2</span><div class="bar-track"><div class="bar-fill" style="width:20%;background:#3fb950;left:20%">stg_orders</div></div></div>
+      <div class="bar-row"><span class="bar-lbl">step 3</span><div class="bar-track"><div class="bar-fill" style="width:20%;background:#d29922;left:40%">stg_pay</div></div></div>
+      <div class="bar-row"><span class="bar-lbl">step 4</span><div class="bar-track"><div class="bar-fill" style="width:25%;background:#d29922;left:60%">int_orders</div></div></div>
+      <div class="bar-row"><span class="bar-lbl">step 5</span><div class="bar-track"><div class="bar-fill" style="width:15%;background:#3fb950;left:85%">fct_summary</div></div></div>
+      <div style="margin-top:10px;font-size:11px;color:#8b949e">Execution time: <strong style="color:#f85149">5 units</strong></div>
+    </div>
+    <div class="par-block">
+      <h4>✅ dbt — parallel (3 threads)</h4>
+      <div class="bar-row"><span class="bar-lbl">thread 1</span><div class="bar-track"><div class="bar-fill" style="width:20%;background:#58a6ff;left:0%">stg_cust</div></div></div>
+      <div class="bar-row"><span class="bar-lbl">thread 2</span><div class="bar-track"><div class="bar-fill" style="width:20%;background:#3fb950;left:0%">stg_orders</div></div></div>
+      <div class="bar-row"><span class="bar-lbl">thread 3</span><div class="bar-track"><div class="bar-fill" style="width:20%;background:#d29922;left:0%">stg_pay</div></div></div>
+      <div class="bar-row"><span class="bar-lbl">thread 1</span><div class="bar-track"><div class="bar-fill" style="width:25%;background:#d29922;left:20%">int_orders</div></div></div>
+      <div class="bar-row"><span class="bar-lbl">thread 1</span><div class="bar-track"><div class="bar-fill" style="width:15%;background:#3fb950;left:45%">fct_summary</div></div></div>
+      <div style="margin-top:10px;font-size:11px;color:#8b949e">Execution time: <strong style="color:#3fb950">3 units</strong></div>
+    </div>
+  </div>
+
+  <div style="background:#161b22;border:1px solid #2d333b;border-radius:9px;padding:14px 16px;margin-bottom:16px;font-size:12px;color:#8b949e;line-height:1.6">
+    <strong style="color:#e6edf3;display:block;margin-bottom:5px">How does dbt know it can parallelize?</strong>
+    Because <code style="font-family:'JetBrains Mono',monospace;font-size:10px;background:rgba(255,255,255,.07);padding:1px 4px;border-radius:3px">stg_customers</code>, <code style="font-family:'JetBrains Mono',monospace;font-size:10px;background:rgba(255,255,255,.07);padding:1px 4px;border-radius:3px">stg_orders</code>, and <code style="font-family:'JetBrains Mono',monospace;font-size:10px;background:rgba(255,255,255,.07);padding:1px 4px;border-radius:3px">stg_payments</code> each only reference <code>source()</code> — they have no <code>ref()</code> edges between them. dbt reads the graph, sees no dependencies, and dispatches all three at once. The <code>ref()</code> declarations from tab 2 are the orchestration — you didn't write any extra config to make this happen.
+  </div>
+
+  <div style="background:#161b22;border:1px solid #2d333b;border-radius:9px;padding:14px 16px;margin-bottom:16px;font-size:12px;color:#8b949e;line-height:1.6">
+    <strong style="color:#e6edf3;display:block;margin-bottom:5px">What about using Python with an orchestrator like Airflow?</strong>
+    You can parallelize Python scripts with Airflow or Prefect — but now you're maintaining two systems: the transformation logic in Python, and the DAG definition in the orchestrator. In dbt, the <code>ref()</code> calls inside your SQL files <em>are</em> the DAG. There's no separate orchestration file to keep in sync.
+  </div>
+
+  <div class="ann">
+    <strong>At scale:</strong> This example has 5 models. Real projects have hundreds. A pipeline with 40 independent staging models runs in roughly the time it takes to run one, given enough threads — no orchestrator config required.
+  </div>
+</div>
+
+<!-- TAB 5: WHEN THINGS BREAK -->
+<div class="panel" id="p4">
+  <div class="hint">
+    <span class="hint-icon">🔬</span>
+    <div>The Python script works until it doesn't. When it breaks, the debugging experience is fundamentally different. <strong>Click each scenario</strong> to compare.</div>
+  </div>
+
+  <div class="debug-scenario">
+    <div class="debug-trigger" onclick="toggleDebug(this)"><span class="sname">Pipeline fails at the join step (step 4)</span><span class="chevron">▼</span></div>
+    <div class="debug-body">
+      <div class="debug-split">
+        <div class="dc"><div class="ch">python script</div><p>Step 4 failed. The DataFrames from steps 1–3 were in memory — they're gone when the process died. Re-run the entire script from the top to reproduce the failure. Every debug cycle = full re-run, including all the expensive <code>pd.read_sql()</code> calls.</p></div>
+        <div class="dc"><div class="ch">dbt</div><p>Step 4 failed. <code>stg_orders</code> and <code>stg_payments</code> are still in the warehouse as real tables. Run <code>dbt run -s int_orders_with_payments</code> to re-execute only that model. Upstream work stays intact.</p></div>
+      </div>
+      <div class="debug-note">The difference comes from one thing: dbt models are real, persistent tables in your warehouse. Python DataFrames live in memory and die with the process. That's the whole game.</div>
+    </div>
+  </div>
+
+  <div class="debug-scenario">
+    <div class="debug-trigger" onclick="toggleDebug(this)"><span class="sname">Wrong row count in the final output</span><span class="chevron">▼</span></div>
+    <div class="debug-body">
+      <div class="debug-split">
+        <div class="dc"><div class="ch">python script</div><p>Fan-out in the merge? Bad filter in step 2? You add <code>print(df.shape)</code> calls throughout, re-run the whole script, and stare at numbers. Or you temporarily write intermediate CSVs to disk. Multiple full re-run cycles to isolate the problem.</p></div>
+        <div class="dc"><div class="ch">dbt</div><p>Query <code>stg_orders</code> — how many rows? Query <code>int_orders_with_payments</code> — how many? The difference shows exactly where the fan-out happened. No re-run needed. The intermediate tables are just sitting there in the warehouse.</p></div>
+      </div>
+      <div class="debug-note">Because every intermediate model is a real table, you can bisect a row count problem the same way you'd bisect a bug in code — without re-running anything.</div>
+    </div>
+  </div>
+
+  <div class="debug-scenario">
+    <div class="debug-trigger" onclick="toggleDebug(this)"><span class="sname">Upstream schema change — a column got renamed</span><span class="chevron">▼</span></div>
+    <div class="debug-body">
+      <div class="debug-split">
+        <div class="dc"><div class="ch">python script</div><p>The rename hits mid-script: <code>KeyError: 'amount'</code>. Steps 1 and 2 already ran and loaded data into memory. Now you're not sure what state anything is in. Find all the places in all scripts where <code>'amount'</code> is referenced — there's no central list.</p></div>
+        <div class="dc"><div class="ch">dbt</div><p><code>stg_payments</code> is the only model that touches <code>raw.payments</code>. Fix the column reference there. Every downstream model gets the fix automatically on the next run. One change point, not five scripts to grep through.</p></div>
+      </div>
+      <div class="debug-note">The <code>stg_</code> layer acts as an isolation boundary. Raw schema changes only affect one file — the staging model for that source.</div>
+    </div>
+  </div>
+
+  <div class="debug-scenario">
+    <div class="debug-trigger" onclick="toggleDebug(this)"><span class="sname">3am on-call alert fires</span><span class="chevron">▼</span></div>
+    <div class="debug-body">
+      <div class="debug-split">
+        <div class="dc"><div class="ch">python script</div><p>Script failed. No DataFrames anywhere — they were in memory. Re-run the full script to reproduce. Add <code>print()</code> statements, re-run again. Check if any temp CSVs were written. Multiple cycles before you even start fixing. All the expensive source queries run again each time.</p></div>
+        <div class="dc"><div class="ch">dbt</div><p>dbt run logs show the exact model that failed and the exact SQL error. Intermediate models are still in the warehouse. Fix the model, run <code>dbt run -s failed_model+</code> to re-run it and only its dependents.</p></div>
+      </div>
+      <div class="debug-note">This is where the value becomes visceral. The engineer on-call at 3am cares a lot about whether the intermediate state survived the failure.</div>
+    </div>
+  </div>
+
+  <div class="debug-scenario">
+    <div class="debug-trigger" onclick="toggleDebug(this)"><span class="sname">What else depends on payments data?</span><span class="chevron">▼</span></div>
+    <div class="debug-body">
+      <div class="debug-split">
+        <div class="dc"><div class="ch">python script</div><p>Grep the scripts folder for <code>raw.payments</code> and hope every script uses the same connection string format. Hope nobody copied the logic into a Jupyter notebook. No system-of-record for what reads what.</p></div>
+        <div class="dc"><div class="ch">dbt</div><p>The lineage graph shows every downstream model that references <code>stg_payments</code>. Click on it in the dbt DAG and see the full impact of any change instantly. A new engineer can answer "what depends on this?" in 5 seconds.</p></div>
+      </div>
+      <div class="debug-note">A grep of the codebase finds what you know to look for. The dbt DAG shows you what you didn't know existed.</div>
+    </div>
+  </div>
+
+  <div class="ann ok">
+    <strong>The root cause of every dbt debugging advantage:</strong> Intermediate models are real, persistent, queryable tables. Python DataFrames live in memory and disappear when the process ends. Every other difference flows from that one fact.
+  </div>
+</div>
+
+<div class="bottom-nav">
+  <button class="btn-nav" id="btn-prev" onclick="step(-1)" disabled>← back</button>
+  <span class="step-ind" id="step-ind">1 / 5</span>
+  <button class="btn-nav primary" id="btn-next" onclick="step(1)">next →</button>
+</div>
+
+</div>
+<script>
+var cur=0,total=5;
+function go(n){
+  cur=n;
+  document.querySelectorAll('.panel').forEach((p,i)=>p.classList.toggle('active',i===n));
+  document.querySelectorAll('.nav-step').forEach((s,i)=>{
+    s.classList.toggle('active',i===n);
+    s.classList.toggle('done',i<n);
+  });
+  document.getElementById('step-ind').textContent=(n+1)+' / '+total;
+  document.getElementById('btn-prev').disabled=n===0;
+  var nb=document.getElementById('btn-next');
+  nb.textContent=n===total-1?'done ✓':'next →';
+  nb.disabled=false;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function step(d){var n=cur+d;if(n>=0&&n<total)go(n);}
+function toggleTmp(bid,rid){
+  var b=document.getElementById(bid),r=document.getElementById(rid);
+  var open=r.classList.contains('show');
+  r.classList.toggle('show',!open);
+  b.classList.toggle('expanded',!open);
+}
+function toggleDebug(t){
+  var b=t.nextElementSibling,open=b.classList.contains('show');
+  b.classList.toggle('show',!open);
+  t.classList.toggle('open',!open);
+}
+</script>
+</body>
+</html>

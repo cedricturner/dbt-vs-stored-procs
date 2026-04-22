@@ -1,28 +1,43 @@
-# dbt Interactive Walkthroughs
+# cedric turner · how I think about data systems
 
-Hands-on, self-serve explainers for understanding how dbt works. Each walkthrough is a self-contained HTML file — no setup needed.
+The most expensive thing a data organization does isn't building pipelines.
 
-**[Browse all walkthroughs →](https://cedricturner.github.io/dbt-artifacts)**
+It's building the same pipeline twice — because nobody trusted the first one.
 
-## Walkthroughs
+This is a collection of posts about why that happens, and what actually changes it. Not "here's how to use dbt." More like: here's the underlying problem that explains why these tools exist, and why teams still struggle even after adopting them.
 
-| Walkthrough | Topic | Description |
-|---|---|---|
-| [dbt vs Stored Procedures](./dbt-vs-stored-procs/) | Data Modeling | How dbt transforms a tangled stored procedure into clean, testable, modular SQL |
-| [dbt Connection Modes](./dbt-connection-modes/) | Infrastructure | How dbt authenticates and connects to your data platform — from profiles.yml to dbt Cloud |
-| [dbt + AI — Conversational Analytics](./dbt-ai-llm/) | AI & LLMs | How LLMs plug into the dbt Semantic Layer to power natural language queries over your data |
+I care about the gap between *this works* and *this gets used*. That gap is almost never a technical problem.
 
-## Structure
-```
-dbt-artifacts/
-├── index.html                    # landing hub
-├── dbt-vs-stored-procs/
-│   └── index.html
-├── dbt-connection-modes/
-│   └── index.html
-└── dbt-ai-llm/
-    └── index.html
-```
+---
 
-## Usage
-Download any `index.html` and open in a browser, or use the live links above.
+## Posts
+
+**[The stored procedure is not your enemy](posts/stored-procedures/)**
+The real problem isn't the technology. It's that your pipeline was designed to execute — not to be inspected.
+
+**[Data teams don't have a quality problem. They have a trust problem.](posts/trust-problem/)**
+Tests tell you when something broke. They don't tell you what happened. Those are different problems.
+
+**[Python or SQL is the wrong question](posts/python-vs-sql/)**
+The language doesn't matter. Where the computation runs does.
+
+---
+
+## Interactive explainers
+
+If you prefer learning by doing, I also maintain a set of interactive walkthroughs on the same topics:
+
+- [dbt vs Stored Procedures](https://cedricturner.github.io/dbt-artifacts/dbt-vs-stored-procs/) — step through a real migration
+- [dbt vs Python Scripts](https://cedricturner.github.io/dbt-artifacts/dbt-vs-scripts/) — see what changes when you move computation into the warehouse
+- [dbt Connection Modes](https://cedricturner.github.io/dbt-artifacts/dbt-connection-modes/) — how dbt connects to your warehouse, and what each option actually means
+- [dbt + AI / Conversational Analytics](https://cedricturner.github.io/dbt-artifacts/dbt-ai-llm/) — how the Semantic Layer becomes the contract between governed metrics and AI agents
+
+---
+
+## About
+
+I'm a Solutions Architect with a background in data engineering, moving toward product and technical marketing.
+
+My interest is in how technical systems get adopted — or don't — and why the gap between "this works" and "this gets used" is usually a visibility problem, not a capability problem.
+
+I'm drawn to the human side of technical decisions: why teams rebuild things that already exist, why they distrust platforms they helped build, and what makes a system feel legible enough to actually build on.

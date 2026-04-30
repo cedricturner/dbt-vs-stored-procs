@@ -866,118 +866,116 @@ window.setCfg = function(i) {
 };
 
 function renderStep6() {
-  var caps = [
-    { label: 'Read warehouse data',     dev: true,  ro: true,  ai: true  },
-    { label: 'Write &amp; deploy models',  dev: true,  ro: false, ai: false },
-    { label: 'Modify dbt definitions',  dev: true,  ro: false, ai: false },
-    { label: 'Arbitrary SQL',           dev: true,  ro: true,  ai: false },
-    { label: 'Semantic Layer enforced', dev: false, ro: false, ai: true  },
-  ];
+  var G = 'display:grid;gap:10px;';
 
-  var capsHtml = '<div style="background:var(--raised);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-top:14px">';
-  capsHtml += '<div style="display:grid;grid-template-columns:1fr 90px 90px 90px;border-bottom:1px solid var(--border)">';
-  capsHtml += '<div style="padding:8px 14px;font-family:var(--mono);font-size:8px;letter-spacing:1.5px;color:var(--muted)">CAPABILITY</div>';
-  capsHtml += '<div style="padding:8px 0;font-family:var(--mono);font-size:8.5px;font-weight:600;color:#a78bfa;border-left:1px solid var(--border);text-align:center">DEV</div>';
-  capsHtml += '<div style="padding:8px 0;font-family:var(--mono);font-size:8.5px;font-weight:600;color:#3fb950;border-left:1px solid var(--border);text-align:center">READ-ONLY</div>';
-  capsHtml += '<div style="padding:8px 0;font-family:var(--mono);font-size:8.5px;font-weight:600;color:#d29922;border-left:1px solid var(--border);text-align:center">AI AGENT</div>';
-  capsHtml += '</div>';
-  for (var i = 0; i < caps.length; i++) {
-    var c = caps[i];
-    var last = i === caps.length - 1;
-    capsHtml += '<div style="display:grid;grid-template-columns:1fr 90px 90px 90px' + (!last ? ';border-bottom:1px solid var(--border)' : '') + '">';
-    capsHtml += '<div style="padding:8px 14px;font-size:11px;color:var(--text)">' + c.label + '</div>';
-    capsHtml += '<div style="padding:8px 0;text-align:center;border-left:1px solid var(--border);font-size:15px;color:' + (c.dev ? '#3fb950' : 'var(--border)') + '">' + (c.dev ? '✓' : '–') + '</div>';
-    capsHtml += '<div style="padding:8px 0;text-align:center;border-left:1px solid var(--border);font-size:15px;color:' + (c.ro  ? '#3fb950' : 'var(--border)') + '">' + (c.ro  ? '✓' : '–') + '</div>';
-    capsHtml += '<div style="padding:8px 0;text-align:center;border-left:1px solid var(--border);font-size:15px;color:' + (c.ai  ? '#3fb950' : 'var(--border)') + '">' + (c.ai  ? '✓' : '–') + '</div>';
-    capsHtml += '</div>';
+  // ── Row 1: identity type headers ──────────────────────────────────────────
+  var devHdr =
+    '<div style="border:1.5px solid #7c3aed;border-radius:8px;padding:13px 14px;margin-bottom:8px">' +
+      '<div style="color:#a78bfa;font-family:var(--mono);font-size:12px;font-weight:600;margin-bottom:3px">Analytics Engineers</div>' +
+      '<div style="color:var(--muted);font-size:10.5px">Developer access</div>' +
+    '</div>';
+
+  var bizHdr =
+    '<div style="border:1.5px solid #3fb950;border-radius:8px;padding:13px 14px;margin-bottom:8px">' +
+      '<div style="color:#3fb950;font-family:var(--mono);font-size:12px;font-weight:600;margin-bottom:3px">Business Consumers</div>' +
+      '<div style="color:var(--muted);font-size:10.5px">GTM · Finance · Product</div>' +
+    '</div>';
+
+  var aiHdr =
+    '<div style="border:1.5px solid #d29922;border-radius:8px;padding:13px 14px;margin-bottom:8px">' +
+      '<div style="color:#d29922;font-family:var(--mono);font-size:12px;font-weight:600;margin-bottom:3px">AI Agents</div>' +
+      '<div style="color:var(--muted);font-size:10.5px">Automated workflows</div>' +
+    '</div>';
+
+  // ── Row 2: credential / auth boxes ────────────────────────────────────────
+  var devCred =
+    '<div style="background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.25);border-radius:8px;padding:11px 13px">' +
+      '<div style="color:#a78bfa;font-family:var(--mono);font-size:8.5px;font-weight:600;letter-spacing:1px;margin-bottom:7px">DEVELOPER CREDENTIALS</div>' +
+      '<div style="color:var(--muted);font-size:10.5px;line-height:1.8">read · write · deploy<br>dbt username + password</div>' +
+    '</div>';
+
+  var bizCred =
+    '<div style="background:rgba(63,185,80,.06);border:1px solid rgba(63,185,80,.2);border-radius:8px;padding:11px 13px">' +
+      '<div style="color:var(--muted);font-family:var(--mono);font-size:8px;font-weight:600;letter-spacing:1px;margin-bottom:5px">TODAY</div>' +
+      '<div style="color:var(--muted);font-size:10.5px;margin-bottom:9px">Personal Access Token (PAT)</div>' +
+      '<div style="color:#3fb950;font-family:var(--mono);font-size:8px;font-weight:600;letter-spacing:.5px;margin-bottom:4px">COMING SOON — RECOMMENDED</div>' +
+      '<div style="color:#3fb950;font-size:12px;font-weight:600;margin-bottom:4px">OAuth "login with dbt"</div>' +
+      '<div style="color:var(--muted);font-size:10px">Short-lived tokens · auto-refresh · SSO compatible</div>' +
+    '</div>';
+
+  function tokenRow(label, desc) {
+    return '<div style="display:flex;align-items:center;gap:7px;margin-bottom:5px">' +
+      '<div style="min-width:100px;padding:3px 7px;background:rgba(210,153,34,.14);border:1px solid rgba(210,153,34,.4);border-radius:3px;font-family:var(--mono);font-size:8px;color:#d29922">' + label + '</div>' +
+      '<div style="color:var(--muted);font-size:9.5px;white-space:nowrap">' + desc + '</div>' +
+    '</div>';
   }
-  capsHtml += '</div>';
+
+  var aiCred =
+    '<div style="background:rgba(210,153,34,.06);border:1px solid rgba(210,153,34,.2);border-radius:8px;padding:11px 13px">' +
+      '<div style="color:#d29922;font-family:var(--mono);font-size:8.5px;font-weight:600;letter-spacing:1px;margin-bottom:5px">ONE TOKEN PER DOMAIN</div>' +
+      '<div style="color:var(--muted);font-size:10px;margin-bottom:9px">Generated in dbt Cloud → Service Tokens</div>' +
+      tokenRow('GTM token',     'GTM metrics only') +
+      tokenRow('Finance token', 'Finance metrics only') +
+      tokenRow('Product token', 'cross-domain read') +
+      '<div style="color:var(--muted);font-size:9px;font-style:italic;margin-top:5px">Compromised token = one domain only</div>' +
+    '</div>';
+
+  // ── Governance layer role boxes ────────────────────────────────────────────
+  var transformerRole =
+    '<div style="background:rgba(124,58,237,.1);border:1.5px solid rgba(124,58,237,.5);border-radius:8px;padding:13px">' +
+      '<div style="color:#a78bfa;font-family:var(--mono);font-size:10.5px;font-weight:600;margin-bottom:9px">Transformer role</div>' +
+      '<div style="color:var(--muted);font-size:10.5px;line-height:1.95">· All models + metrics<br>· IDE · CI · jobs<br>· Write + deploy<br>· Full audit log</div>' +
+    '</div>';
+
+  var reporterRole =
+    '<div style="background:rgba(63,185,80,.08);border:1.5px solid rgba(63,185,80,.45);border-radius:8px;padding:13px">' +
+      '<div style="color:#3fb950;font-family:var(--mono);font-size:10.5px;font-weight:600;margin-bottom:9px">Reporter role (per person)</div>' +
+      '<div style="color:var(--muted);font-size:10.5px;line-height:1.95">· Read marts only · no deploy<br>· GTM users → GTM models<br>· Finance users → Finance models<br>· Cross-domain → explicit grant</div>' +
+    '</div>';
+
+  var scopedTokens =
+    '<div style="background:rgba(210,153,34,.08);border:1.5px solid rgba(210,153,34,.45);border-radius:8px;padding:13px">' +
+      '<div style="color:#d29922;font-family:var(--mono);font-size:10.5px;font-weight:600;margin-bottom:9px">Scoped service tokens</div>' +
+      '<div style="color:var(--muted);font-size:10.5px;line-height:1.95">· MetricFlow queries only<br>· No raw model access<br>· No arbitrary SQL<br>· Audit logged per token</div>' +
+    '</div>';
+
+  // ── Two gates ──────────────────────────────────────────────────────────────
+  var gate1 =
+    '<div style="flex:1;background:rgba(255,107,53,.06);border:1.5px solid #ff6b35;border-radius:8px;padding:15px 16px">' +
+      '<div style="color:#ff6b35;font-family:var(--mono);font-size:11.5px;font-weight:600;margin-bottom:7px">Gate 1 — dbt</div>' +
+      '<div style="color:var(--muted);font-size:10.5px;line-height:1.7">Controls what you\'re allowed to query. Each identity can only request what their role permits — even if the warehouse would allow more.</div>' +
+    '</div>';
+
+  var gate2 =
+    '<div style="flex:1;background:rgba(88,166,255,.06);border:1.5px solid #58a6ff;border-radius:8px;padding:15px 16px">' +
+      '<div style="color:#58a6ff;font-family:var(--mono);font-size:11.5px;font-weight:600;margin-bottom:7px">Gate 2 — Warehouse</div>' +
+      '<div style="color:var(--muted);font-size:10.5px;line-height:1.7">Controls which rows come back. Row-level security enforced at execution time. Final backstop — can\'t be bypassed by dbt or MCP.</div>' +
+    '</div>';
 
   return '<div class="card">' +
-  '<div class="card-title">Security &amp; Governance</div>' +
-  '<div class="card-sub">Same warehouse. Different paths. AI agents get one extra gate.</div>' +
-  '<div style="background:var(--raised);border:1px solid var(--border);border-radius:10px;padding:16px;overflow-x:auto">' +
-  '<svg viewBox="0 0 840 332" xmlns="http://www.w3.org/2000/svg" style="width:100%;min-width:600px;display:block">' +
-  '<defs>' +
-  '<marker id="g-p" viewBox="0 0 10 7" refX="9" refY="3.5" markerWidth="6" markerHeight="5" orient="auto"><path d="M0 0 L10 3.5 L0 7z" fill="#7c3aed"/></marker>' +
-  '<marker id="g-g" viewBox="0 0 10 7" refX="9" refY="3.5" markerWidth="6" markerHeight="5" orient="auto"><path d="M0 0 L10 3.5 L0 7z" fill="#3fb950"/></marker>' +
-  '<marker id="g-a" viewBox="0 0 10 7" refX="9" refY="3.5" markerWidth="6" markerHeight="5" orient="auto"><path d="M0 0 L10 3.5 L0 7z" fill="#d29922"/></marker>' +
-  '<marker id="g-m" viewBox="0 0 10 7" refX="9" refY="3.5" markerWidth="6" markerHeight="5" orient="auto"><path d="M0 0 L10 3.5 L0 7z" fill="#444c56"/></marker>' +
-  '</defs>' +
+    '<div class="card-title">Security &amp; Governance</div>' +
+    '<div class="card-sub">Same warehouse. Different paths. Every consumer passes two gates.</div>' +
 
-  '<!-- IDENTITY ICONS -->' +
-  '<circle cx="140" cy="36" r="22" fill="rgba(124,58,237,.12)" stroke="rgba(124,58,237,.35)" stroke-width="1.5"/>' +
-  '<circle cx="140" cy="30" r="7" fill="none" stroke="#a78bfa" stroke-width="1.5"/>' +
-  '<path d="M126 50 C126 42 154 42 154 50" fill="none" stroke="#a78bfa" stroke-width="1.5" stroke-linecap="round"/>' +
-  '<text x="140" y="70" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="9" font-weight="600" text-anchor="middle" letter-spacing=".5">DEVELOPER</text>' +
+    // Identity columns
+    '<div style="' + G + 'grid-template-columns:1fr 1fr 1fr;margin-top:4px">' +
+      '<div>' + devHdr + devCred + '</div>' +
+      '<div>' + bizHdr + bizCred + '</div>' +
+      '<div>' + aiHdr + aiCred + '</div>' +
+    '</div>' +
 
-  '<circle cx="420" cy="36" r="22" fill="rgba(63,185,80,.1)" stroke="rgba(63,185,80,.35)" stroke-width="1.5"/>' +
-  '<circle cx="420" cy="30" r="7" fill="none" stroke="#3fb950" stroke-width="1.5"/>' +
-  '<path d="M406 50 C406 42 434 42 434 50" fill="none" stroke="#3fb950" stroke-width="1.5" stroke-linecap="round"/>' +
-  '<text x="420" y="70" fill="#3fb950" font-family="JetBrains Mono,monospace" font-size="9" font-weight="600" text-anchor="middle" letter-spacing=".5">READ-ONLY SEAT</text>' +
+    // dbt Governance Layer
+    '<div style="border:1.5px dashed #ff6b35;border-radius:10px;padding:14px;margin-top:12px">' +
+      '<div style="color:#ff6b35;font-family:var(--mono);font-size:8.5px;font-weight:600;letter-spacing:1.5px;margin-bottom:11px">' +
+        'dbt GOVERNANCE LAYER — what dbt controls: which models and metrics each identity can query' +
+      '</div>' +
+      '<div style="' + G + 'grid-template-columns:1fr 1fr 1fr">' +
+        transformerRole + reporterRole + scopedTokens +
+      '</div>' +
+    '</div>' +
 
-  '<circle cx="700" cy="36" r="22" fill="rgba(210,153,34,.1)" stroke="rgba(210,153,34,.35)" stroke-width="1.5"/>' +
-  '<rect x="692" y="24" width="16" height="14" rx="3" fill="none" stroke="#d29922" stroke-width="1.5"/>' +
-  '<circle cx="696" cy="30" r="1.5" fill="#d29922"/><circle cx="704" cy="30" r="1.5" fill="#d29922"/>' +
-  '<line x1="700" y1="38" x2="700" y2="48" stroke="#d29922" stroke-width="1.5" stroke-linecap="round"/>' +
-  '<line x1="694" y1="42" x2="706" y2="42" stroke="#d29922" stroke-width="1.5" stroke-linecap="round"/>' +
-  '<text x="700" y="70" fill="#d29922" font-family="JetBrains Mono,monospace" font-size="9" font-weight="600" text-anchor="middle" letter-spacing=".5">AI AGENT</text>' +
+    // Two gates
+    '<div style="display:flex;gap:10px;margin-top:12px">' + gate1 + gate2 + '</div>' +
 
-  '<!-- CREDENTIAL BADGES -->' +
-  '<rect x="52" y="82" width="176" height="28" rx="5" fill="rgba(124,58,237,.1)" stroke="rgba(124,58,237,.3)" stroke-width="1.2"/>' +
-  '<text x="140" y="94" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="8" font-weight="600" text-anchor="middle">Developer Credentials</text>' +
-  '<text x="140" y="104" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="7.5" text-anchor="middle">read · write · deploy</text>' +
-
-  '<rect x="332" y="82" width="176" height="28" rx="5" fill="rgba(63,185,80,.08)" stroke="rgba(63,185,80,.3)" stroke-width="1.2"/>' +
-  '<text x="420" y="94" fill="#3fb950" font-family="JetBrains Mono,monospace" font-size="8" font-weight="600" text-anchor="middle">Read-Only Credentials</text>' +
-  '<text x="420" y="104" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="7.5" text-anchor="middle">read only</text>' +
-
-  '<rect x="612" y="82" width="176" height="28" rx="5" fill="rgba(210,153,34,.08)" stroke="rgba(210,153,34,.3)" stroke-width="1.2"/>' +
-  '<text x="700" y="94" fill="#d29922" font-family="JetBrains Mono,monospace" font-size="8" font-weight="600" text-anchor="middle">Service Account</text>' +
-  '<text x="700" y="104" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="7.5" text-anchor="middle">inherits dbt role</text>' +
-
-  '<!-- Arrows into dbt band -->' +
-  '<line x1="140" y1="110" x2="140" y2="136" stroke="#7c3aed" stroke-width="1.5" marker-end="url(#g-p)" opacity=".7"/>' +
-  '<line x1="420" y1="110" x2="420" y2="136" stroke="#3fb950" stroke-width="1.5" marker-end="url(#g-g)" opacity=".7"/>' +
-  '<line x1="700" y1="110" x2="700" y2="136" stroke="#d29922" stroke-width="1.5" marker-end="url(#g-a)" opacity=".7"/>' +
-
-  '<!-- dbt GOVERNANCE BAND -->' +
-  '<rect x="10" y="138" width="820" height="52" rx="8" fill="rgba(255,107,53,.04)" stroke="#ff6b35" stroke-width="1.5" stroke-dasharray="4,3"/>' +
-  '<text x="420" y="157" fill="#ff6b35" font-family="JetBrains Mono,monospace" font-size="8.5" font-weight="600" text-anchor="middle" letter-spacing="1.5">dbt GOVERNANCE LAYER</text>' +
-  '<text x="420" y="171" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="8" text-anchor="middle">tests · lineage · documentation · role-based access · audit logs</text>' +
-
-  '<!-- Arrows out of dbt band -->' +
-  '<line x1="140" y1="190" x2="140" y2="216" stroke="#7c3aed" stroke-width="1.5" marker-end="url(#g-p)" opacity=".7"/>' +
-  '<line x1="420" y1="190" x2="420" y2="216" stroke="#3fb950" stroke-width="1.5" marker-end="url(#g-g)" opacity=".7"/>' +
-  '<line x1="700" y1="190" x2="700" y2="216" stroke="#d29922" stroke-width="1.5" marker-end="url(#g-a)" opacity=".7"/>' +
-
-  '<!-- WAREHOUSE ROLES (Dev + Read-Only) -->' +
-  '<rect x="62" y="218" width="156" height="26" rx="5" fill="rgba(124,58,237,.08)" stroke="rgba(124,58,237,.25)" stroke-width="1.2"/>' +
-  '<text x="140" y="230" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="8" font-weight="600" text-anchor="middle">Transformer Role</text>' +
-  '<text x="140" y="240" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="7.5" text-anchor="middle">read + write models</text>' +
-
-  '<rect x="342" y="218" width="156" height="26" rx="5" fill="rgba(63,185,80,.06)" stroke="rgba(63,185,80,.25)" stroke-width="1.2"/>' +
-  '<text x="420" y="230" fill="#3fb950" font-family="JetBrains Mono,monospace" font-size="8" font-weight="600" text-anchor="middle">Reporter Role</text>' +
-  '<text x="420" y="240" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="7.5" text-anchor="middle">read marts &amp; reports</text>' +
-
-  '<!-- SEMANTIC LAYER (AI only — extra gate) -->' +
-  '<rect x="608" y="216" width="184" height="44" rx="7" fill="rgba(124,58,237,.12)" stroke="#7c3aed" stroke-width="2.5"/>' +
-  '<text x="700" y="234" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="9.5" font-weight="600" text-anchor="middle">Semantic Layer</text>' +
-  '<text x="700" y="248" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="8" text-anchor="middle">governed metrics · MetricFlow</text>' +
-  '<text x="700" y="256" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="7.5" text-anchor="middle">no arbitrary SQL</text>' +
-
-  '<!-- Arrows to warehouse -->' +
-  '<line x1="140" y1="244" x2="140" y2="280" stroke="#444c56" stroke-width="1.5" marker-end="url(#g-m)" opacity=".8"/>' +
-  '<line x1="420" y1="244" x2="420" y2="280" stroke="#444c56" stroke-width="1.5" marker-end="url(#g-m)" opacity=".8"/>' +
-  '<line x1="700" y1="260" x2="700" y2="280" stroke="#7c3aed" stroke-width="1.5" marker-end="url(#g-p)" opacity=".8"/>' +
-
-  '<!-- WAREHOUSE -->' +
-  '<rect x="10" y="282" width="820" height="36" rx="7" fill="rgba(88,166,255,.06)" stroke="#58a6ff" stroke-width="1.5"/>' +
-  '<text x="420" y="297" fill="#58a6ff" font-family="JetBrains Mono,monospace" font-size="9" font-weight="600" text-anchor="middle" letter-spacing=".5">WAREHOUSE</text>' +
-  '<text x="420" y="310" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="7.5" text-anchor="middle">Snowflake · BigQuery · Databricks · Redshift</text>' +
-  '</svg>' +
-  '</div>' +
-  capsHtml +
   '</div>';
 }
 

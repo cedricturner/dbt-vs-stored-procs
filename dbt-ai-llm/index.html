@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>dbt + AI — Conversational Analytics</title>
+<title>dbt + AI: Conversational Analytics</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -45,7 +45,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 <div class="hdr">
   <div class="hdr-tag">dbt Labs · AI / LLM</div>
   <h1>From Data to Conversation</h1>
-  <p>How dbt connects your warehouse to AI agents — with the same trust layer that powers your BI tools.</p>
+  <p>How dbt connects your warehouse to AI agents, with the same trust layer that powers your BI tools.</p>
 </div>
 <div class="nav" id="snav"></div>
 <div id="scontent"></div>
@@ -65,7 +65,7 @@ var cur = 0;
 function renderStep0() {
   return `<div class="card">
   <div class="card-title">Dashboard vs. Conversation</div>
-  <div class="card-sub">Same data, same metrics — different interface.</div>
+  <div class="card-sub">Same data, same metrics. Different interface.</div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
 
     <!-- BI side -->
@@ -153,174 +153,30 @@ function renderStep0() {
         <div style="align-self:flex-start;max-width:92%;padding:9px 12px;border-radius:10px;font-size:12px;line-height:1.5;background:var(--bg);border:1px solid var(--border)">
           <span style="display:block;font-family:var(--mono);font-size:10px;color:var(--pl);background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.2);border-radius:4px;padding:3px 7px;margin-bottom:5px">→ query_metrics(revenue, group_by=[region, channel])</span>
           <span style="display:block;font-family:var(--mono);font-size:10px;color:var(--green);background:rgba(63,185,80,.06);border:1px solid rgba(63,185,80,.15);border-radius:4px;padding:3px 7px;margin-bottom:6px">← East: $1.9M · Digital channel +34%</span>
-          East growth was almost entirely digital — up 34% QoQ. New customer acquisition, not expansion.
+          East growth was almost entirely digital, up 34% QoQ. New customer acquisition, not expansion.
         </div>
         <div style="align-self:flex-end;max-width:88%;padding:9px 12px;border-radius:10px;font-size:12px;line-height:1.5;background:rgba(124,58,237,.18);border:1px solid rgba(124,58,237,.3);color:#c4b5fd">Is CAC holding up or are we buying that growth?</div>
         <div style="align-self:flex-start;max-width:92%;padding:9px 12px;border-radius:10px;font-size:12px;line-height:1.5;background:var(--bg);border:1px solid var(--border)">
           <span style="display:block;font-family:var(--mono);font-size:10px;color:var(--pl);background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.2);border-radius:4px;padding:3px 7px;margin-bottom:5px">→ query_metrics(cac, region=East, group_by=[month])</span>
           <span style="display:block;font-family:var(--mono);font-size:10px;color:var(--green);background:rgba(63,185,80,.06);border:1px solid rgba(63,185,80,.15);border-radius:4px;padding:3px 7px;margin-bottom:6px">← CAC up 18% · payback period now 14mo</span>
-          CAC climbed 18% while revenue grew 34% — efficient for now, but payback is stretching. Worth watching in Q1.
+          CAC climbed 18% while revenue grew 34%. Efficient for now, but payback is stretching. Worth watching in Q1.
         </div>
       </div>
       <div style="font-size:10px;color:var(--green);text-align:center;padding:7px;border-top:1px solid var(--border);background:rgba(63,185,80,.04)">Governed metrics · follows the thread · no ticket required</div>
     </div>
   </div>
-  <div class="cap">The dashboard answers the question you thought to ask. The agent follows the one you're actually asking — and keeps going. Same underlying dbt metrics, same definitions. The interface is what changes.</div>
+  <div class="cap">The dashboard answers the question you thought to ask. The agent follows the one you're actually asking, and keeps going. Same underlying dbt metrics, same definitions. The interface is what changes.</div>
 </div>`;
 }
 
 function renderStep1() {
   return `<div class="card">
-  <div class="card-title">The Stack — source to AI</div>
-  <div class="card-sub">dbt sits at the center: it transforms raw data, defines business metrics in the Semantic Layer, and exposes everything via APIs. The MCP Server bridges dbt's APIs to LLMs — giving AI tools governed, structured access to the same data your dashboards use.</div>
+  <div class="card-title">The Stack: source to AI</div>
+  <div class="card-sub">dbt sits at the center: it transforms raw data, defines business metrics in the Semantic Layer, and exposes everything via APIs. The MCP Server bridges dbt's APIs to LLMs, giving AI tools governed, structured access to the same data your dashboards use.</div>
   <div style="background:var(--raised);border:1px solid var(--border);border-radius:10px;padding:16px;overflow-x:auto">
-    <svg viewBox="0 0 1020 460" xmlns="http://www.w3.org/2000/svg" style="width:100%;min-width:680px;display:block">
-      <defs>
-        <marker id="s1g" viewBox="0 0 10 7" refX="9" refY="3.5" markerWidth="6" markerHeight="5" orient="auto"><path d="M0 0 L10 3.5 L0 7z" fill="#444c56"/></marker>
-        <marker id="s1b" viewBox="0 0 10 7" refX="9" refY="3.5" markerWidth="6" markerHeight="5" orient="auto"><path d="M0 0 L10 3.5 L0 7z" fill="#58a6ff"/></marker>
-        <marker id="s1p" viewBox="0 0 10 7" refX="9" refY="3.5" markerWidth="6" markerHeight="5" orient="auto"><path d="M0 0 L10 3.5 L0 7z" fill="#a78bfa"/></marker>
-        <marker id="s1t" viewBox="0 0 10 7" refX="9" refY="3.5" markerWidth="6" markerHeight="5" orient="auto"><path d="M0 0 L10 3.5 L0 7z" fill="#2dd4bf"/></marker>
-      </defs>
-
-      <!-- SOURCES ZONE -->
-      <rect x="8" y="28" width="108" height="402" rx="6" fill="rgba(68,76,86,.07)" stroke="#444c56" stroke-width="1.5" stroke-dasharray="5,4"/>
-      <rect x="14" y="34" width="96" height="15" rx="3" fill="rgba(68,76,86,.25)" stroke="#444c56" stroke-width="1"/>
-      <text x="62" y="44" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="6.5" text-anchor="middle">out of dbt scope</text>
-
-      <rect x="15" y="58" width="92" height="36" rx="4" fill="#1c2129" stroke="#444c56" stroke-width="1.2"/>
-      <text x="61" y="71" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="7" text-anchor="middle">App DB</text>
-      <text x="61" y="85" fill="#e6edf3" font-family="JetBrains Mono,monospace" font-size="7.5" font-weight="600" text-anchor="middle">production data</text>
-
-      <rect x="15" y="104" width="92" height="36" rx="4" fill="#1c2129" stroke="#444c56" stroke-width="1.2"/>
-      <text x="61" y="117" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="7" text-anchor="middle">Events</text>
-      <text x="61" y="131" fill="#e6edf3" font-family="JetBrains Mono,monospace" font-size="7.5" font-weight="600" text-anchor="middle">clickstream · logs</text>
-
-      <rect x="15" y="150" width="92" height="36" rx="4" fill="#1c2129" stroke="#444c56" stroke-width="1.2"/>
-      <text x="61" y="163" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="7" text-anchor="middle">Other data</text>
-      <text x="61" y="177" fill="#e6edf3" font-family="JetBrains Mono,monospace" font-size="7.5" font-weight="600" text-anchor="middle">CRM · SaaS · files</text>
-
-      <path d="M107 76 L125 128" stroke="#444c56" stroke-width="1.2" fill="none" marker-end="url(#s1g)"/>
-      <path d="M107 122 L125 133" stroke="#444c56" stroke-width="1.2" fill="none" marker-end="url(#s1g)"/>
-      <path d="M107 168 L125 138" stroke="#444c56" stroke-width="1.2" fill="none" marker-end="url(#s1g)"/>
-
-      <!-- STORAGE — warehouse -->
-      <rect x="126" y="100" width="116" height="66" rx="6" fill="rgba(88,166,255,.07)" stroke="#58a6ff" stroke-width="1.8"/>
-      <text x="184" y="117" fill="#58a6ff" font-family="JetBrains Mono,monospace" font-size="9" font-weight="700" text-anchor="middle">[ warehouse ]</text>
-      <line x1="134" y1="124" x2="234" y2="124" stroke="#1c3a50" stroke-width="1"/>
-      <text x="184" y="138" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="7" text-anchor="middle">Snowflake · BigQuery</text>
-      <text x="184" y="150" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="7" text-anchor="middle">Databricks · Redshift</text>
-      <text x="184" y="180" fill="#444c56" font-family="JetBrains Mono,monospace" font-size="6.5" text-anchor="middle">RBAC / SSO</text>
-      <text x="184" y="191" fill="#444c56" font-family="JetBrains Mono,monospace" font-size="6.5" text-anchor="middle">service &amp; personal-access tokens</text>
-
-      <path d="M242 133 L252 133" stroke="#58a6ff" stroke-width="1.8" fill="none" marker-end="url(#s1b)"/>
-
-      <!-- TRANSFORMATION ZONE — purple dashed, sized to content -->
-      <rect x="252" y="18" width="320" height="416" rx="8" fill="rgba(124,58,237,.04)" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="6,4"/>
-      <text x="412" y="12" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="7.5" font-weight="600" text-anchor="middle" letter-spacing="1">TRANSFORMATION</text>
-
-      <!-- dbt PLATFORM BOX — orange, centered in transform zone -->
-      <rect x="260" y="68" width="304" height="158" rx="7" fill="rgba(255,107,53,.04)" stroke="#ff6b35" stroke-width="1.8"/>
-      <text x="412" y="84" fill="#ff6b35" font-family="JetBrains Mono,monospace" font-size="9" font-weight="700" text-anchor="middle">dbt Platform</text>
-      <text x="412" y="97" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="7" text-anchor="middle" font-style="italic">bronze / silver / gold  —  logic stays here</text>
-
-      <!-- top row: Catalog (green) + Fusion+Dev Agent (blue) — h=50 fits 4 lines -->
-      <rect x="268" y="106" width="140" height="50" rx="5" fill="rgba(63,185,80,.08)" stroke="#3fb950" stroke-width="1.5"/>
-      <text x="338" y="120" fill="#3fb950" font-family="JetBrains Mono,monospace" font-size="8" font-weight="600" text-anchor="middle">catalog</text>
-      <text x="338" y="131" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="7" text-anchor="middle">lineage · debugging</text>
-      <text x="338" y="141" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="7" text-anchor="middle">docs · freshness</text>
-      <text x="338" y="151" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="6.5" text-anchor="middle" font-style="italic">project visibility</text>
-
-      <rect x="416" y="106" width="140" height="50" rx="5" fill="rgba(88,166,255,.08)" stroke="#58a6ff" stroke-width="1.5"/>
-      <text x="486" y="120" fill="#58a6ff" font-family="JetBrains Mono,monospace" font-size="8" font-weight="600" text-anchor="middle">Fusion + Dev Agent</text>
-      <text x="486" y="131" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="7" text-anchor="middle">agentic development</text>
-      <text x="486" y="141" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="7" text-anchor="middle">SQL comprehension</text>
-      <text x="486" y="151" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="6.5" text-anchor="middle" font-style="italic">active dev workflows</text>
-
-      <!-- bottom row: dbt APIs + Semantic Layer (both pink — AI assets) — h=50 -->
-      <rect x="268" y="164" width="140" height="50" rx="5" fill="rgba(167,139,250,.08)" stroke="#a78bfa" stroke-width="1.5"/>
-      <text x="338" y="178" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="8" font-weight="600" text-anchor="middle">dbt APIs</text>
-      <text x="338" y="189" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="7" text-anchor="middle">discovery · SL · admin</text>
-      <text x="338" y="199" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="7" text-anchor="middle">metadata · jobs</text>
-      <text x="338" y="209" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="6.5" text-anchor="middle" font-style="italic">AI access layer</text>
-
-      <rect x="416" y="164" width="140" height="50" rx="5" fill="rgba(167,139,250,.08)" stroke="#a78bfa" stroke-width="1.5"/>
-      <text x="486" y="178" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="8" font-weight="600" text-anchor="middle">semantic layer</text>
-      <text x="486" y="189" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="7" text-anchor="middle">metrics + descriptions</text>
-      <text x="486" y="199" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="7" text-anchor="middle">MetricFlow SQL</text>
-      <text x="486" y="209" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="6.5" text-anchor="middle" font-style="italic">defined once, anywhere</text>
-
-      <!-- dbt APIs → MCP -->
-      <path d="M408 189 L580 216" stroke="#a78bfa" stroke-width="1.8" fill="none" marker-end="url(#s1p)"/>
-      <!-- semantic layer → MCP -->
-      <path d="M556 189 L580 228" stroke="#a78bfa" stroke-width="1.8" fill="none" marker-end="url(#s1p)"/>
-
-      <!-- orchestration sticky — below platform box -->
-      <rect x="268" y="236" width="120" height="28" rx="4" fill="rgba(63,185,80,.12)" stroke="#3fb950" stroke-width="1"/>
-      <text x="328" y="249" fill="#3fb950" font-family="JetBrains Mono,monospace" font-size="7" text-anchor="middle" font-weight="600">orchestration</text>
-      <text x="328" y="259" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="6.5" text-anchor="middle">dbt Cloud jobs · Airflow · etc.</text>
-
-      <!-- MCP SERVER BOX — pink/lavender, sized to content -->
-      <rect x="580" y="148" width="144" height="148" rx="7" fill="rgba(167,139,250,.08)" stroke="#a78bfa" stroke-width="2"/>
-      <text x="652" y="165" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="9" font-weight="700" text-anchor="middle">MCP Server</text>
-      <line x1="588" y1="172" x2="716" y2="172" stroke="#3d2d6b" stroke-width="1"/>
-      <text x="652" y="184" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="7" text-anchor="middle">pragmatic access for LLMs</text>
-      <text x="652" y="195" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="7" text-anchor="middle">gives LLMs context via APIs</text>
-      <line x1="588" y1="202" x2="716" y2="202" stroke="#3d2d6b" stroke-width="1"/>
-      <text x="652" y="214" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="7.5" text-anchor="middle">query_metrics</text>
-      <text x="652" y="226" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="7.5" text-anchor="middle">get_lineage · list_models</text>
-      <text x="652" y="238" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="7.5" text-anchor="middle">execute_sql</text>
-      <text x="652" y="254" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="6.5" text-anchor="middle" font-style="italic">the bridge</text>
-      <text x="652" y="265" fill="#444c56" font-family="JetBrains Mono,monospace" font-size="6" text-anchor="middle" font-style="italic">api connector ↔ BI tools</text>
-      <text x="652" y="284" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="6" text-anchor="middle" font-style="italic">sources + dbt + warehouse</text>
-      <text x="652" y="293" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="6" text-anchor="middle" font-style="italic">in one context window</text>
-
-      <!-- MCP → Claude/LLMs -->
-      <path d="M724 186 L732 73" stroke="#a78bfa" stroke-width="2" fill="none" marker-end="url(#s1p)"/>
-      <!-- MCP → BI tools (dashed) -->
-      <path d="M724 258 L732 237" stroke="#2dd4bf" stroke-width="1.5" stroke-dasharray="4,3" fill="none" marker-end="url(#s1t)"/>
-
-      <!-- CONSUME ZONE — teal dashed -->
-      <rect x="732" y="18" width="280" height="416" rx="8" fill="rgba(45,212,191,.03)" stroke="#2dd4bf" stroke-width="1.5" stroke-dasharray="6,4"/>
-      <text x="872" y="12" fill="#2dd4bf" font-family="JetBrains Mono,monospace" font-size="7.5" font-weight="600" text-anchor="middle" letter-spacing="1">CONSUME</text>
-      <rect x="738" y="22" width="268" height="15" rx="3" fill="rgba(210,153,34,.14)" stroke="rgba(210,153,34,.4)" stroke-width="1"/>
-      <text x="872" y="32" fill="#d29922" font-family="JetBrains Mono,monospace" font-size="6.5" text-anchor="middle">ultimate goal = self service + accuracy</text>
-
-      <!-- AI tools sub-zone — purple dashed (context layer lives inside) -->
-      <rect x="738" y="42" width="268" height="158" rx="5" fill="rgba(124,58,237,.05)" stroke="#7c3aed" stroke-width="1.2" stroke-dasharray="4,3"/>
-      <!-- Claude / LLMs — h=44 for 3 lines -->
-      <rect x="746" y="52" width="252" height="44" rx="5" fill="rgba(210,153,34,.15)" stroke="#d29922" stroke-width="1.8"/>
-      <text x="872" y="67" fill="#d29922" font-family="JetBrains Mono,monospace" font-size="8" font-weight="700" text-anchor="middle">Claude / LLMs</text>
-      <text x="872" y="79" fill="#e6edf3" font-family="JetBrains Mono,monospace" font-size="7" text-anchor="middle">natural language querying</text>
-      <text x="872" y="90" fill="#d29922" font-family="JetBrains Mono,monospace" font-size="6" text-anchor="middle">primary use case &#x2605;</text>
-      <!-- context layer — h=50 for 4 lines, inside AI sub-zone -->
-      <rect x="746" y="104" width="252" height="50" rx="4" fill="rgba(45,212,191,.07)" stroke="#2dd4bf" stroke-width="1" stroke-dasharray="3,3"/>
-      <text x="872" y="118" fill="#2dd4bf" font-family="JetBrains Mono,monospace" font-size="7" text-anchor="middle" font-weight="600">context layer</text>
-      <text x="872" y="130" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="6.5" text-anchor="middle">skills / .md / docs can live here</text>
-      <text x="872" y="141" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="6.5" text-anchor="middle">instructions for the semantic layer</text>
-      <text x="872" y="150" fill="#444c56" font-family="JetBrains Mono,monospace" font-size="6" text-anchor="middle" font-style="italic">CLAUDE.md · system prompts · tool descriptions</text>
-      <!-- AI tools label -->
-      <text x="872" y="188" fill="#a78bfa" font-family="JetBrains Mono,monospace" font-size="6.5" text-anchor="middle" font-style="italic">AI tools</text>
-
-      <!-- BI tools sub-zone — blue dashed, h=58 for 3 lines + badge -->
-      <rect x="738" y="208" width="268" height="58" rx="5" fill="rgba(88,166,255,.05)" stroke="#58a6ff" stroke-width="1.2" stroke-dasharray="4,3"/>
-      <text x="872" y="222" fill="#58a6ff" font-family="JetBrains Mono,monospace" font-size="8" font-weight="600" text-anchor="middle">BI Tools</text>
-      <text x="872" y="233" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="7" text-anchor="middle">Tableau · Power BI · Sigma · Looker</text>
-      <text x="872" y="244" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="7" text-anchor="middle">consistent answers · same SL</text>
-      <rect x="754" y="250" width="236" height="11" rx="3" fill="rgba(88,166,255,.1)" stroke="rgba(88,166,255,.3)" stroke-width="1"/>
-      <text x="872" y="259" fill="#58a6ff" font-family="JetBrains Mono,monospace" font-size="6.5" text-anchor="middle">same semantic layer = same truth</text>
-
-      <!-- stakeholders — downstream consuming from AI + BI, h=44 for 3 lines -->
-      <rect x="738" y="276" width="268" height="44" rx="5" fill="#1c2129" stroke="#e6edf3" stroke-width="1.5"/>
-      <text x="872" y="292" fill="#e6edf3" font-family="JetBrains Mono,monospace" font-size="9" font-weight="700" text-anchor="middle">&#x1F60A; stakeholders</text>
-      <text x="872" y="305" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="7" text-anchor="middle">self sufficient  ·  accurate answers</text>
-      <text x="872" y="315" fill="#8b949e" font-family="JetBrains Mono,monospace" font-size="6" text-anchor="middle" font-style="italic">consuming downstream from AI + BI</text>
-
-      <!-- downward arrows: BI → stakeholders -->
-      <path d="M800 266 L800 276" stroke="#8b949e" stroke-width="1" fill="none" marker-end="url(#s1g)"/>
-      <path d="M944 266 L944 276" stroke="#8b949e" stroke-width="1" fill="none" marker-end="url(#s1g)"/>
-    </svg>
+    <img src="stack-diagram.svg" alt="The Stack: source to AI architecture diagram" style="width:100%;display:block;border-radius:6px;background:#fff"/>
   </div>
-  <div class="cap">The Semantic Layer and dbt APIs live inside the dbt Platform — defined once, reused by everyone. The MCP Server is the bridge: it wraps those APIs into structured tools that LLMs can reason with. Whether you're in Tableau or talking to Claude, you're getting the same governed data.</div>
+  <div class="cap">The Semantic Layer and dbt APIs live inside the dbt Platform, defined once, reused by everyone. The MCP Server is the bridge: it wraps those APIs into structured tools that LLMs can reason with. Whether you're in Tableau or talking to Claude, you're getting the same governed data.</div>
 </div>`;
 }
 
@@ -428,7 +284,7 @@ function renderStep2() {
       <text x="528" y="267" fill="#58a6ff" font-family="JetBrains Mono,monospace" font-size="8">all dimensions from parent metrics</text>
     </svg>
   </div>
-  <div class="cap">The semantic model registers <strong>entities</strong> (the grain), <strong>dimensions</strong> (how to slice), and <strong>measures</strong> (raw aggregations). Metrics sit on top — simple ones reference a single measure, derived ones compose from other metrics. When an AI agent calls <code style="color:var(--pl)">query_metrics("revenue")</code>, MetricFlow generates the SQL. Nothing extra is materialized.</div>
+  <div class="cap">The semantic model registers <strong>entities</strong> (the grain), <strong>dimensions</strong> (how to slice), and <strong>measures</strong> (raw aggregations). Metrics sit on top. Simple ones reference a single measure, derived ones compose from other metrics. When an AI agent calls <code style="color:var(--pl)">query_metrics("revenue")</code>, MetricFlow generates the SQL. Nothing extra is materialized.</div>
 </div>`;
 }
 
@@ -436,7 +292,7 @@ function renderStep3() {
   var tiers = [
     {
       num: 1,
-      label: 'Tier 1 — Semantic Layer',
+      label: 'Tier 1: Semantic Layer',
       badge: 'MOST EFFICIENT',
       badgeColor: 'var(--pl)',
       color: 'var(--pl)',
@@ -456,16 +312,16 @@ function renderStep3() {
     },
     {
       num: 2,
-      label: 'Tier 2 — Discovery',
+      label: 'Tier 2: Discovery',
       badge: 'EXPLORE FIRST',
       badgeColor: 'var(--blue)',
       color: 'var(--blue)',
       border: 'rgba(88,166,255,.5)',
       bg: 'rgba(88,166,255,.07)',
       headline: 'Understand the project before acting',
-      when: 'Agent needs context — what models exist, what the lineage looks like, what tests are passing. Adds tokens but prevents wrong answers.',
+      when: 'Agent needs context: what models exist, what the lineage looks like, what tests are passing. Adds tokens but prevents wrong answers.',
       tools: ['get_all_models', 'get_model_details', 'get_lineage', 'get_model_health', 'get_all_sources', 'get_model_parents', 'get_model_children', 'search'],
-      exampleQ: 'Something looks off with churn — can you investigate?',
+      exampleQ: 'Something looks off with churn, can you investigate?',
       exampleSteps: [
         { type: 'tool',   text: 'get_lineage("churn_rate")' },
         { type: 'result', text: 'traces to stg_subscriptions' },
@@ -476,26 +332,26 @@ function renderStep3() {
     },
     {
       num: 3,
-      label: 'Tier 3 — Direct SQL',
+      label: 'Tier 3: Direct SQL',
       badge: 'AD HOC',
       badgeColor: 'var(--amber)',
       color: 'var(--amber)',
       border: 'rgba(210,153,34,.5)',
       bg: 'rgba(210,153,34,.07)',
       headline: 'Run SQL directly when no metric covers it',
-      when: 'The question does not map to a defined metric. Agent writes SQL against known models — more tokens, less governance.',
+      when: 'The question does not map to a defined metric. Agent writes SQL against known models. More tokens, less governance.',
       tools: ['execute_sql', 'show'],
       exampleQ: 'How many accounts were created in the last 7 days by plan type?',
       exampleSteps: [
-        { type: 'think',  text: 'No metric for this — will query fct_accounts directly' },
+        { type: 'think',  text: 'No metric for this. Querying fct_accounts directly.' },
         { type: 'tool',   text: 'execute_sql("SELECT plan_type, COUNT(*) FROM fct_accounts WHERE created_at >= CURRENT_DATE - 7 GROUP BY 1")' },
         { type: 'result', text: '{free: 1842, pro: 214, enterprise: 31}' },
-        { type: 'warn',   text: 'Raw result — no tests, no metric definition enforced.' },
+        { type: 'warn',   text: 'Raw result. No tests, no metric definition enforced.' },
       ]
     },
     {
       num: 4,
-      label: 'Tier 4 — Text-to-SQL',
+      label: 'Tier 4: Text-to-SQL',
       badge: 'LAST RESORT',
       badgeColor: 'var(--red)',
       color: 'var(--red)',
@@ -509,7 +365,7 @@ function renderStep3() {
         { type: 'think',  text: 'No metric, no known model for this question' },
         { type: 'tool',   text: 'text_to_sql("average order value by country for enterprise accounts")' },
         { type: 'result', text: 'SQL generated from schema only' },
-        { type: 'warn',   text: 'No tests, no definitions — result may differ from Tableau.' },
+        { type: 'warn',   text: 'No tests, no definitions. Result may differ from Tableau.' },
       ]
     },
   ];
@@ -594,11 +450,11 @@ function renderStep3() {
   pillsHtml += '</div>';
 
   var detailHtml = '<div style="background:var(--raised);border:1px solid var(--border);border-radius:10px;overflow:hidden;display:flex;flex-direction:column">';
-  detailHtml += '<div style="padding:9px 13px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px" id="tier-hdr">TIER 1 — SEMANTIC LAYER</div>';
+  detailHtml += '<div style="padding:9px 13px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px" id="tier-hdr">TIER 1: SEMANTIC LAYER</div>';
   detailHtml += '<div style="padding:16px;flex:1" id="tier-body">' + buildTierDetail(0) + '</div>';
   detailHtml += '</div>';
 
-  return '<div class="card"><div class="card-title">Agent Reasoning</div><div class="card-sub">How the agent decides which tools to use — from most efficient to last resort.</div>' +
+  return '<div class="card"><div class="card-title">Agent Reasoning</div><div class="card-sub">How the agent decides which tools to use, from most efficient to last resort.</div>' +
     '<div style="display:grid;grid-template-columns:1fr 1.6fr;gap:14px">' +
     pillsHtml + detailHtml +
     '</div></div>';
@@ -618,7 +474,7 @@ window.setTier = function(i) {
   }
   var hdr  = document.getElementById('tier-hdr');
   var body = document.getElementById('tier-body');
-  if (hdr)  hdr.textContent = 'TIER ' + tiers[i].num + ' — ' + tiers[i].label.split('—')[1].trim().toUpperCase();
+  if (hdr)  hdr.textContent = 'TIER ' + tiers[i].num + ': ' + tiers[i].label.split(':')[1].trim().toUpperCase();
   if (body) body.innerHTML  = window._buildTierDetail(i);
 };
 
@@ -626,16 +482,16 @@ function renderStep4() {
   var cases = [
     {
       title: 'Semantic Layer',
-      sub: 'Governed metric queries — no raw SQL',
+      sub: 'Governed metric queries, no raw SQL',
       color: '#a78bfa',
       border: 'rgba(124,58,237,.4)',
       bg: 'rgba(124,58,237,.08)',
       tools: ['list_metrics', 'query_metrics', 'get_dimensions', 'list_saved_queries', 'get_metrics_compiled_sql'],
-      desc: 'The highest-value tool group. Agents query pre-defined, tested metrics by name — the same definitions powering your BI dashboards. No SQL generation, no guessing column names.',
+      desc: 'The highest-value tool group. Agents query pre-defined, tested metrics by name, the same definitions powering your BI dashboards. No SQL generation, no guessing column names.',
       usecases: [
-        { icon: '📊', title: 'Natural language querying', detail: 'Stakeholders ask "What was churn last quarter?" and get accurate, governed answers — no analyst needed, no SQL written.' },
-        { icon: '🖥', title: 'BI tools & consistent answers', detail: 'BI tools like Tableau, Sigma, or Excel hit the same Semantic Layer — one definition, consistent numbers everywhere.' },
-        { icon: '📅', title: 'Scheduled reporting', detail: 'Agents pull metrics on a schedule, write a narrative summary, and post to Slack or email — automatically and accurately.' },
+        { icon: '📊', title: 'Natural language querying', detail: 'Stakeholders ask "What was churn last quarter?" and get accurate, governed answers. No analyst needed, no SQL written.' },
+        { icon: '🖥', title: 'BI tools & consistent answers', detail: 'BI tools like Tableau, Sigma, or Excel hit the same Semantic Layer. One definition, consistent numbers everywhere.' },
+        { icon: '📅', title: 'Scheduled reporting', detail: 'Agents pull metrics on a schedule, write a narrative summary, and post to Slack or email, automatically and accurately.' },
         { icon: '🔍', title: 'Metric exploration', detail: 'Agents can discover what metrics exist, what dimensions are available, and what saved queries are already defined before answering.' },
       ],
       steps: [
@@ -644,7 +500,7 @@ function renderStep4() {
         { type: 'result', text: '[churn_rate, revenue, cac, ndr...]' },
         { type: 'tool',   text: 'query_metrics("churn_rate", group_by=["plan_type", "metric_time__quarter"])' },
         { type: 'result', text: '{free: 3.4%, pro: 0.9%, enterprise: 0.2%}' },
-        { type: 'ok',     text: 'Free tier churn rose to 3.4% — Pro and Enterprise held steady.' },
+        { type: 'ok',     text: 'Free tier churn rose to 3.4%. Pro and Enterprise held steady.' },
       ]
     },
     {
@@ -654,20 +510,20 @@ function renderStep4() {
       border: 'rgba(88,166,255,.4)',
       bg: 'rgba(88,166,255,.08)',
       tools: ['get_all_models', 'get_model_details', 'get_lineage', 'get_model_health', 'get_model_parents', 'get_model_children', 'get_all_sources', 'get_exposures'],
-      desc: 'Discovery tools give agents a map of your project — models, lineage, health, documentation. Essential context before modifying anything or debugging an issue.',
+      desc: 'Discovery tools give agents a map of your project: models, lineage, health, and documentation. Essential context before modifying anything or debugging an issue.',
       usecases: [
         { icon: '🕵️', title: 'Lineage exploration', detail: 'Trace where a metric comes from, what models feed into it, and which downstream reports depend on it. Useful for debugging data quality issues and impact analysis.' },
-        { icon: '🔗', title: 'External lineage ingestion', detail: 'Pull lineage metadata into other tools — data catalogs, observability platforms, or custom dashboards — for a unified view of your project.' },
+        { icon: '🔗', title: 'External lineage ingestion', detail: 'Pull lineage metadata into other tools like data catalogs, observability platforms, or custom dashboards, for a unified view of your project.' },
         { icon: '🩺', title: 'Debugging broken metrics', detail: 'If a Semantic Layer query returns unexpected results, discovery tools trace the path upstream to find stale models, failed tests, or schema changes.' },
-        { icon: '📖', title: 'Project onboarding', detail: 'New engineers or agents can explore the full project structure — what models exist, what they do, and how they connect — without opening the codebase.' },
+        { icon: '📖', title: 'Project onboarding', detail: 'New engineers or agents can explore the full project structure: what models exist, what they do, and how they connect, without opening the codebase.' },
       ],
       steps: [
-        { type: 'think',  text: 'Q: "Revenue dropped 18% — what happened?"' },
+        { type: 'think',  text: 'Q: "Revenue dropped 18%. What happened?"' },
         { type: 'tool',   text: 'get_lineage("fct_revenue")' },
         { type: 'result', text: 'traces to fct_orders → stg_payments' },
         { type: 'tool',   text: 'get_model_health("stg_payments")' },
         { type: 'result', text: 'last successful run: 31 hours ago' },
-        { type: 'ok',     text: 'stg_payments is stale — this is a pipeline lag, not a real revenue drop.' },
+        { type: 'ok',     text: 'stg_payments is stale. This is a pipeline lag, not a real revenue drop.' },
       ]
     },
     {
@@ -677,20 +533,20 @@ function renderStep4() {
       border: 'rgba(210,153,34,.4)',
       bg: 'rgba(210,153,34,.08)',
       tools: ['list_jobs', 'trigger_job_run', 'list_jobs_runs', 'get_job_run_details', 'get_job_run_error', 'cancel_job_run', 'retry_job_run', 'get_model_performance'],
-      desc: 'Admin tools let agents manage the full job lifecycle — trigger runs, monitor status, surface failures, and debug performance — without anyone logging into dbt Cloud.',
+      desc: 'Admin tools let agents manage the full job lifecycle: trigger runs, monitor status, surface failures, and debug performance. No one needs to log into dbt Cloud.',
       usecases: [
         { icon: '🚨', title: 'Job failure triage', detail: 'When a job fails, an agent can immediately pull the error logs, identify which model broke, trace upstream, and surface actionable context to the on-call engineer.' },
         { icon: '⏱', title: 'Performance debugging', detail: 'Agents can identify which models are slow, how run times have changed over time, and suggest where to add incremental logic or partitioning.' },
-        { icon: '🔄', title: 'Automated run management', detail: 'Trigger jobs in response to upstream events (a source table landing), monitor completion, retry failures, or cancel stuck runs — no manual intervention.' },
+        { icon: '🔄', title: 'Automated run management', detail: 'Trigger jobs in response to upstream events (a source table landing), monitor completion, retry failures, or cancel stuck runs. No manual intervention.' },
         { icon: '📈', title: 'Observability & alerting', detail: 'Proactively monitor job health, surface degrading run times before they become outages, and feed status into ops dashboards or Slack alerts.' },
       ],
       steps: [
-        { type: 'think',  text: 'Alert: revenue metric stale — investigating' },
+        { type: 'think',  text: 'Alert: revenue metric stale. Investigating.' },
         { type: 'tool',   text: 'list_jobs_runs(status="failed", limit=5)' },
         { type: 'result', text: 'stg_payments job failed 32h ago' },
         { type: 'tool',   text: 'get_job_run_error(run_id=...)' },
         { type: 'warn',   text: 'Column "amount_usd" not found in source table' },
-        { type: 'ok',     text: 'Schema change upstream — surfaced to engineer with full context.' },
+        { type: 'ok',     text: 'Schema change upstream. Surfaced to engineer with full context.' },
       ]
     },
     {
@@ -700,20 +556,20 @@ function renderStep4() {
       border: 'rgba(255,107,53,.4)',
       bg: 'rgba(255,107,53,.08)',
       tools: ['run', 'build', 'test', 'compile', 'execute_sql', 'text_to_sql'],
-      desc: 'CLI tools close the loop between writing and validating. An agent can build a model, run tests, and immediately query the output — all in one session. Best for active development workflows.',
+      desc: 'CLI tools close the loop between writing and validating. An agent can build a model, run tests, and immediately query the output, all in one session. Best for active development workflows.',
       usecases: [
-        { icon: '🛠', title: 'Active model development', detail: 'Write a model, compile to validate SQL, run it, test it, and query the output — without ever leaving the agent conversation.' },
+        { icon: '🛠', title: 'Active model development', detail: 'Write a model, compile to validate SQL, run it, test it, and query the output, without ever leaving the agent conversation.' },
         { icon: '✅', title: 'Pre-PR validation', detail: 'Agents can run affected models and their tests before code is merged, catching failures early and surfacing results as PR comments.' },
-        { icon: '🔬', title: 'Ad-hoc SQL exploration', detail: 'execute_sql gives agents a direct query path when a metric doesn\'t exist yet — useful for one-off analysis or exploratory data work.' },
-        { icon: '⚠️', title: 'text_to_sql (last resort)', detail: 'When no metric or model matches the question, agents can generate raw SQL. Least reliable — results may differ from governed metrics. Use as a fallback only.' },
+        { icon: '🔬', title: 'Ad-hoc SQL exploration', detail: 'execute_sql gives agents a direct query path when a metric doesn\'t exist yet. Useful for one-off analysis or exploratory data work.' },
+        { icon: '⚠️', title: 'text_to_sql (last resort)', detail: 'When no metric or model matches the question, agents can generate raw SQL. Least reliable. Results may differ from governed metrics. Use as a fallback only.' },
       ],
       steps: [
         { type: 'think',  text: '"Build a model joining orders and customer segments"' },
         { type: 'tool',   text: 'compile("fct_orders_segmented")' },
-        { type: 'result', text: 'SQL valid — no syntax errors' },
+        { type: 'result', text: 'SQL valid. No syntax errors.' },
         { type: 'tool',   text: 'build("fct_orders_segmented")' },
         { type: 'tool',   text: 'test("fct_orders_segmented")' },
-        { type: 'ok',     text: 'All tests passed — model ready.' },
+        { type: 'ok',     text: 'All tests passed. Model ready.' },
       ]
     },
     {
@@ -723,20 +579,20 @@ function renderStep4() {
       border: 'rgba(63,185,80,.4)',
       bg: 'rgba(63,185,80,.08)',
       tools: ['generate_source', 'generate_staging_model', 'generate_model_yaml'],
-      desc: 'Codegen tools let agents introspect a database schema and generate source definitions, staging models, and YAML documentation — turning hours of setup into minutes.',
+      desc: 'Codegen tools let agents introspect a database schema and generate source definitions, staging models, and YAML documentation, turning hours of setup into minutes.',
       usecases: [
-        { icon: '🗄', title: 'New source onboarding', detail: 'A new data source lands in the warehouse. An agent generates sources.yml, staging models, and column-level YAML documentation in minutes — not hours.' },
+        { icon: '🗄', title: 'New source onboarding', detail: 'A new data source lands in the warehouse. An agent generates sources.yml, staging models, and column-level YAML documentation in minutes, not hours.' },
         { icon: '📝', title: 'Documentation generation', detail: 'Agents can generate model YAML with column names and types pre-populated, giving engineers a head start on writing descriptions.' },
-        { icon: '🏗', title: 'Scaffold new projects', detail: 'Spin up a new dbt project area with consistent staging patterns, naming conventions, and file structure — no copy-paste from old models.' },
+        { icon: '🏗', title: 'Scaffold new projects', detail: 'Spin up a new dbt project area with consistent staging patterns, naming conventions, and file structure. No copy-paste from old models.' },
       ],
       steps: [
-        { type: 'think',  text: 'New source arrives — raw_stripe schema' },
+        { type: 'think',  text: 'New source arrives: raw_stripe schema' },
         { type: 'tool',   text: 'generate_source(schema="raw_stripe")' },
-        { type: 'result', text: 'sources.yml created — 12 tables' },
+        { type: 'result', text: 'sources.yml created: 12 tables' },
         { type: 'tool',   text: 'generate_staging_model("raw_stripe", "charges")' },
         { type: 'result', text: 'stg_stripe__charges.sql created' },
         { type: 'tool',   text: 'generate_model_yaml("stg_stripe__charges")' },
-        { type: 'ok',     text: 'YAML with all 24 columns — hours of setup in minutes.' },
+        { type: 'ok',     text: 'YAML with all 24 columns. Hours of setup in minutes.' },
       ]
     },
     {
@@ -746,11 +602,11 @@ function renderStep4() {
       border: 'rgba(45,212,191,.4)',
       bg: 'rgba(45,212,191,.08)',
       tools: ['fusion.get_column_lineage', 'fusion.get_ref_completions', 'fusion.get_source_completions'],
-      desc: 'Fusion tools provide column-level lineage and IDE-style intelligence. Best for developer workflows — understanding exactly where a column comes from and how it flows through the project.',
+      desc: 'Fusion tools provide column-level lineage and IDE-style intelligence. Best for developer workflows, specifically understanding where a column comes from and how it flows through the project.',
       usecases: [
-        { icon: '🔬', title: 'Column-level lineage', detail: 'Trace exactly where a column\'s value comes from — through joins, CTEs, and across models — to understand data transformations and debug unexpected values.' },
+        { icon: '🔬', title: 'Column-level lineage', detail: 'Trace exactly where a column\'s value comes from, through joins, CTEs, and across models, to understand data transformations and debug unexpected values.' },
         { icon: '🐛', title: 'Debugging data quality', detail: 'When a number looks wrong in a dashboard, column lineage traces back to the raw source to find where the value was transformed or filtered incorrectly.' },
-        { icon: '💡', title: 'Developer intelligence', detail: 'ref() and source() completions help agents write accurate dbt SQL — knowing which models and sources exist without guessing or hallucinating names.' },
+        { icon: '💡', title: 'Developer intelligence', detail: 'ref() and source() completions help agents write accurate dbt SQL, knowing which models and sources exist without guessing or hallucinating names.' },
       ],
       steps: [
         { type: 'think',  text: '"Why is revenue different in two models?"' },
@@ -758,7 +614,7 @@ function renderStep4() {
         { type: 'result', text: 'traces: stg_stripe.amount → intermediate.orders_with_fx → fct_revenue' },
         { type: 'tool',   text: 'fusion.get_column_lineage("fct_orders.revenue")' },
         { type: 'result', text: 'traces: stg_braintree.amount_usd → fct_orders' },
-        { type: 'ok',     text: 'Different payment sources — not the same metric. Surfaced to analyst.' },
+        { type: 'ok',     text: 'Different payment sources. Not the same metric. Surfaced to analyst.' },
       ]
     },
   ];
@@ -832,7 +688,7 @@ function renderStep4() {
     '<div style="padding:14px;flex:1;overflow-y:auto" id="uc-body">' + buildUCDetail(0) + '</div>' +
     '</div>';
 
-  return '<div class="card"><div class="card-title">Use Cases by Tool Group</div><div class="card-sub">Each tool group unlocks different agent capabilities. Click a group to see what it enables — and how it works in practice.</div>' +
+  return '<div class="card"><div class="card-title">Use Cases by Tool Group</div><div class="card-sub">Each tool group unlocks different agent capabilities. Click a group to see what it enables and how it works in practice.</div>' +
     '<div style="display:grid;grid-template-columns:200px 1fr;gap:14px;align-items:start">' +
     pillsHtml + visHtml +
     '</div></div>';
@@ -907,7 +763,7 @@ function renderStep5() {
           { type: 'tool',   text: 'get_dimensions("revenue")  →  [region, channel, metric_time__month]' },
           { type: 'tool',   text: 'query_metrics("revenue", group_by=["region"], where=["Nov 2025"])' },
           { type: 'result', text: '{North: $4.2M, West: $3.1M, South: $2.8M, East: $1.9M}' },
-          { type: 'ok',     text: 'Governed · tested · consistent — no SQL written by the model' },
+          { type: 'ok',     text: 'Governed · tested · consistent. No SQL written by the model.' },
         ]
       }
     },
@@ -922,16 +778,16 @@ function renderStep5() {
       stackColors: ['var(--amber)', 'var(--blue)', 'var(--orange)', 'var(--green)'],
       caps: [
         { label: 'Write SQL queries',           have: true,  note: 'with full project context' },
-        { label: 'Understand your schema',       have: true,  note: 'live — no compile step required' },
+        { label: 'Understand your schema',       have: true,  note: 'live, no compile step required' },
         { label: 'Know your metric definitions', have: true,  note: 'via MCP + extension context' },
         { label: 'Validated, tested output',     have: true,  note: 'via MetricFlow + Fusion validation' },
         { label: 'Lineage awareness',            have: true,  note: 'real-time DAG in editor + MCP' },
-        { label: 'Autocomplete & ref() linking', have: true,  note: 'Fusion keeps graph live — refs resolve instantly' },
+        { label: 'Autocomplete & ref() linking', have: true,  note: 'Fusion keeps graph live, refs resolve instantly' },
       ],
       scenario: {
         q: 'Build a new model that joins orders with customer segments',
         steps: [
-          { type: 'think',  text: 'Extension sees full project — fct_orders, dim_customers already in context' },
+          { type: 'think',  text: 'Extension sees full project: fct_orders, dim_customers already in context' },
           { type: 'sql',    text: 'SELECT o.*, c.segment\nFROM {{ ref(\'fct_orders\') }} o\nJOIN {{ ref(\'dim_customers\') }} c\n  ON o.customer_id = c.customer_id' },
           { type: 'ok',     text: 'ref() autocompleted · Fusion validates upstream exists · lineage auto-updated' },
         ]
@@ -940,7 +796,7 @@ function renderStep5() {
     {
       num: '04',
       title: '+ Everything Together',
-      sub: 'Full dbt stack — most powerful',
+      sub: 'Full dbt stack, most powerful',
       color: 'var(--pl)',
       border: 'rgba(167,139,250,.5)',
       bg: 'rgba(124,58,237,.07)',
@@ -952,17 +808,17 @@ function renderStep5() {
         { label: 'Trace lineage end-to-end',       have: true,  note: 'from source to metric' },
         { label: 'Consistent, tested answers',     have: true,  note: 'MetricFlow enforces definitions' },
         { label: 'Trigger & monitor jobs',         have: true,  note: 'list_jobs, trigger_job via MCP' },
-        { label: 'Build + query in same session',  have: true,  note: 'model in editor, query via MCP — closed loop' },
+        { label: 'Build + query in same session',  have: true,  note: 'model in editor, query via MCP, closed loop' },
       ],
       scenario: {
-        q: 'Something looks off with churn — investigate and fix it',
+        q: 'Something looks off with churn. Investigate and fix it.',
         steps: [
           { type: 'tool',   text: 'query_metrics("churn_rate", group_by=["plan_type"])  →  free tier spike' },
           { type: 'tool',   text: 'get_lineage("churn_rate")  →  traces to stg_subscriptions' },
-          { type: 'think',  text: 'Extension opens stg_subscriptions — spots a bad filter on cancelled_at' },
+          { type: 'think',  text: 'Extension opens stg_subscriptions, spots a bad filter on cancelled_at' },
           { type: 'sql',    text: '-- fix: stg_subscriptions.sql\nWHERE cancelled_at IS NOT NULL\n  AND cancellation_reason != \'payment_retry\'' },
           { type: 'tool',   text: 'trigger_job("stg_subscriptions")  →  job queued' },
-          { type: 'ok',     text: 'Investigated, diagnosed, fixed, and re-run — all in one session' },
+          { type: 'ok',     text: 'Investigated, diagnosed, fixed, and re-run, all in one session' },
         ]
       }
     },
@@ -1043,12 +899,12 @@ function renderStep5() {
   visHtml += '<div style="padding:16px;flex:1;overflow-y:auto;max-height:600px" id="cfg-body">' + buildConfig(0) + '</div>';
   visHtml += '</div>';
 
-  return '<div class="card"><div class="card-title">Cursor / Claude — 4 configurations</div>' +
+  return '<div class="card"><div class="card-title">Cursor / Claude: 4 configurations</div>' +
     '<div class="card-sub">Each layer of dbt adds something the AI agent couldn\'t do before. Click to compare.</div>' +
     '<div style="display:grid;grid-template-columns:1fr 1.6fr;gap:14px">' +
     pillsHtml + visHtml +
     '</div>' +
-    '<div class="cap">Configuration 4 is the full picture — but configurations 2 and 3 are already meaningful standalone improvements. The question isn\'t "do you need all of it" — it\'s "how much of your data workflow do you want the AI to understand?"</div>' +
+    '<div class="cap">Configuration 4 is the full picture, but configurations 2 and 3 are already meaningful standalone improvements. The question isn\'t "do you need all of it" but rather "how much of your data workflow do you want the AI to understand?"</div>' +
     '</div>';
 }
 
@@ -1116,7 +972,7 @@ function renderStep6() {
         '<div style="color:var(--muted);font-family:var(--mono);font-size:8px;letter-spacing:1px;margin-bottom:7px">HOW THEY LOG IN</div>' +
         pill('INTERNAL', '#3fb950') +
         '<div style="color:var(--muted);font-size:10px;margin-top:6px;margin-bottom:5px"><strong style="color:var(--text)">Today:</strong> Personal Access Token (PAT)</div>' +
-        '<div style="color:#3fb950;font-size:10px"><strong>Coming soon:</strong> OAuth "login with dbt" — short-lived, SSO-compatible</div>' +
+        '<div style="color:#3fb950;font-size:10px"><strong>Coming soon:</strong> OAuth "login with dbt", short-lived and SSO-compatible</div>' +
       '</div>' +
       '<div style="padding:13px 15px">' +
         '<div style="color:var(--muted);font-family:var(--mono);font-size:8px;letter-spacing:1px;margin-bottom:8px">WHAT THEY CAN DO</div>' +
@@ -1139,11 +995,11 @@ function renderStep6() {
       '<div style="padding:13px 15px;border-bottom:1px solid var(--border)">' +
         '<div style="color:var(--muted);font-family:var(--mono);font-size:8px;letter-spacing:1px;margin-bottom:7px">HOW THEY CONNECT</div>' +
         pill('PROGRAMMATIC / MACHINE', '#d29922') +
-        '<div style="color:var(--muted);font-size:10px;margin-top:6px"><strong style="color:var(--text)">Service Token</strong> — one per use case or team, scoped to a domain. Not tied to a person. Revoke without affecting anyone else.</div>' +
+        '<div style="color:var(--muted);font-size:10px;margin-top:6px"><strong style="color:var(--text)">Service Token</strong>: one per use case or team, scoped to a domain. Not tied to a person. Revoke without affecting anyone else.</div>' +
       '</div>' +
       '<div style="padding:13px 15px">' +
         '<div style="color:var(--muted);font-family:var(--mono);font-size:8px;letter-spacing:1px;margin-bottom:8px">WHAT THEY CAN DO</div>' +
-        check('Semantic Layer — governed metrics only') +
+        check('Semantic Layer, governed metrics only') +
         check('MetricFlow queries via MCP') +
         check('Scoped to assigned domain') +
         check('Audit logged per token') +
@@ -1158,12 +1014,12 @@ function renderStep6() {
       '<div style="flex:1;background:rgba(63,185,80,.05);border:1px solid rgba(63,185,80,.2);border-radius:7px;padding:10px 13px;display:flex;align-items:center;gap:10px">' +
         '<div style="font-size:18px">👤</div>' +
         '<div><div style="color:#3fb950;font-size:10.5px;font-weight:600;margin-bottom:2px">Personal login (PAT or OAuth)</div>' +
-        '<div style="color:var(--muted);font-size:10px">Developer &amp; Read-Only seats. Tied to a real person — audited by user. Also covers personal BI connections (your own Excel, Tableau Desktop).</div></div>' +
+        '<div style="color:var(--muted);font-size:10px">Developer &amp; Read-Only seats. Tied to a real person, audited by user. Also covers personal BI connections (your own Excel, Tableau Desktop).</div></div>' +
       '</div>' +
       '<div style="flex:1;background:rgba(210,153,34,.06);border:1px solid rgba(210,153,34,.2);border-radius:7px;padding:10px 13px;display:flex;align-items:center;gap:10px">' +
         '<div style="font-size:18px">🔑</div>' +
         '<div><div style="color:#d29922;font-size:10.5px;font-weight:600;margin-bottom:2px">Service Token (machine credentials)</div>' +
-        '<div style="color:var(--muted);font-size:10px">AI agents, Claude, MCP connections, and shared BI tools (Tableau Server, Power BI workspace). Not tied to a person — scoped and revocable per use case.</div></div>' +
+        '<div style="color:var(--muted);font-size:10px">AI agents, Claude, MCP connections, and shared BI tools (Tableau Server, Power BI workspace). Not tied to a person. Scoped and revocable per use case.</div></div>' +
       '</div>' +
     '</div>';
 
@@ -1171,14 +1027,14 @@ function renderStep6() {
   var gates =
     '<div style="display:flex;gap:10px;margin-top:10px">' +
       '<div style="flex:1;background:rgba(255,107,53,.06);border:1.5px solid #ff6b35;border-radius:8px;padding:13px 15px">' +
-        '<div style="color:#ff6b35;font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.5px;margin-bottom:5px">GATE 1 — dbt</div>' +
+        '<div style="color:#ff6b35;font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.5px;margin-bottom:5px">GATE 1: dbt</div>' +
         '<div style="color:var(--text);font-size:11px;font-weight:600;margin-bottom:4px">Controls what you can ask for</div>' +
-        '<div style="color:var(--muted);font-size:10px;line-height:1.6">Your role in dbt determines which models and metrics you\'re even allowed to request — regardless of what the warehouse would technically allow.</div>' +
+        '<div style="color:var(--muted);font-size:10px;line-height:1.6">Your role in dbt determines which models and metrics you\'re even allowed to request, regardless of what the warehouse would technically allow.</div>' +
       '</div>' +
       '<div style="flex:1;background:rgba(88,166,255,.06);border:1.5px solid #58a6ff;border-radius:8px;padding:13px 15px">' +
-        '<div style="color:#58a6ff;font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.5px;margin-bottom:5px">GATE 2 — Warehouse</div>' +
+        '<div style="color:#58a6ff;font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.5px;margin-bottom:5px">GATE 2: Warehouse</div>' +
         '<div style="color:var(--text);font-size:11px;font-weight:600;margin-bottom:4px">Controls which rows come back</div>' +
-        '<div style="color:var(--muted);font-size:10px;line-height:1.6">Row-level security is enforced at query time by the warehouse itself. This is the final backstop — dbt and MCP cannot bypass it.</div>' +
+        '<div style="color:var(--muted);font-size:10px;line-height:1.6">Row-level security is enforced at query time by the warehouse itself. This is the final backstop. dbt and MCP cannot bypass it.</div>' +
       '</div>' +
     '</div>';
 
